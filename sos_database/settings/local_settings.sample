@@ -1,0 +1,19 @@
+# GDAL_LIBRARY_PATH = '/opt/homebrew/opt/gdal/lib/libgdal.dylib'
+# GEOS_LIBRARY_PATH = '/opt/homebrew/opt/geos/lib/libgeos_c.dylib'
+
+GSHEETS_PHOTOS_IMPORT_ID = ''
+GSHEETS_PHOTOS_IMPORT_SHEET_NAME = ''
+GSHEETS_BOX_FOLDER_IMPORT_SHEET_NAME = ''
+
+BOX_JWT = {
+  "boxAppSettings": {
+    "clientID": "XXXX",
+    "clientSecret": "XXXX",
+    "appAuth": {
+      "publicKeyID": "XXXX",
+      "privateKey": "-----BEGIN ENCRYPTED PRIVATE KEY-----\nXXXX\n-----END ENCRYPTED PRIVATE KEY-----\n",
+      "passphrase": "XXXX"
+    }
+  },
+  "enterpriseID": "XXXX"
+}

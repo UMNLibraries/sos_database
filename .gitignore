@@ -216,6 +216,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 .DS_Store
+sos_database/data/*
 sos_database/settings/local_settings.py
 sos_database/settings/credentials.json
 sos_database/settings/token.json
+sos_database/settings/*.pem

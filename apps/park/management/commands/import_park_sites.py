@@ -1,10 +1,13 @@
 import csv
+import pandas as pd
 
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 
 from apps.park.models import Park, State, SiteType
+from apps.photo.utils.gsheets import gsheets_login, get_gsheets_df
 
+from django.conf import settings
 
 class Command(BaseCommand):
 
@@ -19,6 +22,24 @@ class Command(BaseCommand):
         State.objects.all().delete()
         SiteType.objects.all().delete()
         Park.objects.all().delete()
+
+    def add_box_folder_ids(self, site_data):
+        """ TODO: Box folder IDs are found in a separate sheet, at least for round 1. Not sure yet how to collect folder names for post-batch-1 sites, of which there are more than 100."""
+
+        service = gsheets_login()
+        supplemental_df = get_gsheets_df(service, settings.GSHEETS_PHOTOS_IMPORT_ID, settings.GSHEETS_BOX_FOLDER_IMPORT_SHEET_NAME)
+
+        # Get Box folder Ids
+        site_data_df = pd.DataFrame(site_data)
+        site_data_df = site_data_df.merge(
+            supplemental_df[['folder name', 'folder link']],
+            how="left",
+            left_on="alpha_code",
+            right_on="folder name"
+        ).fillna(value='')
+        site_data_df['box_folder_id'] = site_data_df['folder link'].str.replace('https://umn.app.box.com/folder/', '')
+
+        return site_data_df.to_dict(orient='records')
         
     def populate_states(self, site_data):
         all_states = []
@@ -45,6 +66,7 @@ class Command(BaseCommand):
             )
 
     def populate_sites(self, site_data):
+
         for row in site_data:
 
             centerpoint = Point(float(row['longitude']), float(row['latitude']))
@@ -53,6 +75,7 @@ class Command(BaseCommand):
                 name=row['name'],
                 site_code=row['alpha_code'],
                 website=row['website'],
+                box_folder_id=row['box_folder_id'],
                 centerpoint=centerpoint
             )
 
@@ -77,6 +100,7 @@ class Command(BaseCommand):
                 # Create a DictReader object
                 csv_reader = csv.DictReader(csv_file)
                 site_data = list(csv_reader)
+                site_data = self.add_box_folder_ids(site_data)
 
                 self.populate_states(site_data)
                 self.populate_site_types(site_data)
