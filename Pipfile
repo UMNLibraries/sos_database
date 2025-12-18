@@ -10,6 +10,10 @@ django-storages = "*"
 django-simple-history = "*"
 boto3 = "*"
 pillow = "*"
+google-api-python-client = "*"
+google-auth-httplib2 = "*"
+google-auth-oauthlib = "*"
+pandas = "*"
 
 [dev-packages]
 

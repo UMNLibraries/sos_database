@@ -217,3 +217,5 @@ __marimo__/
 
 .DS_Store
 sos_database/settings/local_settings.py
+sos_database/settings/credentials.json
+sos_database/settings/token.json
