@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from simple_history.models import HistoricalRecords
 
-from sos_database.storage_backends import PublicMediaStorage
+from sos_database.storage_backends import PrivateMediaStorage
 
 from apps.park.models import Park, State
 
@@ -39,12 +39,12 @@ LOCATION_TYPE_CHOICES = (
 class Photo(models.Model):
     # associations and ids
     park = models.ForeignKey(Park, null=True, on_delete=models.SET_NULL)
-    sign = models.ForeignKey(Sign, null=True, on_delete=models.SET_NULL)
+    sign = models.ForeignKey(Sign, null=True, blank=True, on_delete=models.SET_NULL)
     scope = models.CharField(max_length=4, db_index=True, choices=SCOPE_CHOICES)
     status = models.CharField(max_length=4, db_index=True, choices=STATUS_CHOICES)
     box_id = models.CharField(max_length=255, db_index=True)
     box_filename = models.CharField(max_length=255)
-    box_foldername = models.CharField(max_length=255)
+    # box_foldername = models.CharField(max_length=255)
     photo_file_name = models.CharField(max_length=255)
     original_file_name = models.CharField(max_length=255)
 
@@ -53,22 +53,27 @@ class Photo(models.Model):
     # collection something something? probably separate m2m
 
     # descriptions
-    title = models.TextField(null=True)
-    title_final = models.TextField(null=True)
-    additional_notes = models.TextField(null=True)
-    additional_notes_final = models.TextField(null=True)
+    title = models.TextField(null=True, blank=True)
+    title_final = models.TextField(null=True, blank=True)
+    additional_notes = models.TextField(null=True, blank=True)
+    additional_notes_final = models.TextField(null=True, blank=True)
 
     # image urls
     main_image_url = models.ImageField(
-        storage=PublicMediaStorage(), null=True)
+        storage=PrivateMediaStorage(), upload_to="images", max_length=255, null=True, blank=True)
     thumb_url = models.ImageField(
-        storage=PublicMediaStorage(), null=True)
+        storage=PrivateMediaStorage(), upload_to="thumbs", max_length=255, null=True, blank=True)
 
     #location info
-    location_orig = models.PointField(srid=4326, null=True)
-    location_modified = models.PointField(srid=4326, null=True)
+    location_orig = models.PointField(srid=4326, null=True, blank=True)
+    location_modified = models.PointField(srid=4326, null=True, blank=True)
     # location_source
     location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True)
+
+    def __str__(self):
+        if self.title_final:
+            return f"{self.park.name} {self.id}: '{self.title_final}'"
+        return f"{self.park.name} {self.id}"
 
     # Scope
     # Metadata edits

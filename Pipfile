@@ -16,8 +16,12 @@ google-auth-oauthlib = "*"
 pandas = "*"
 boxsdk = {extras = ["jwt"], version = "==3.14.0"}
 pillow-heif = "*"
+dalf = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.10"
+python_version = "3.14"
+
+[pipenv]
+allow_prereleases = true
