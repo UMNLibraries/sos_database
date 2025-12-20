@@ -49,10 +49,10 @@ class Command(BaseCommand):
 
         parser.add_argument('-b', '--box_refresh', action='store_true',
                         help='Re-generate CSV of Box Image IDs.')
-        
-        parser.add_argument('-d', '--delete', action='store_true',
-                        help='Delete existing records before import.')
-        
+
+        parser.add_argument('-r', '--reload_objs', action='store_true',
+                        help='Delete and re-create Django Photo instances.')
+
         parser.add_argument('-y', '--dry', action='store_true',
                         help='Just tell me how many keys are left to upload and exit.')
         
@@ -243,14 +243,11 @@ class Command(BaseCommand):
         return row
         
     def handle(self, *args, **kwargs):
-        clear_first = kwargs['delete']
+        reload_photos = kwargs['reload_objs']
         box_refresh = kwargs['box_refresh']
         self.upload_batch_size = kwargs['limit']
         self.min_thread_time = kwargs['mintime']
         self.num_threads = kwargs['pool']
-
-        if clear_first:
-            self.clear_all()
 
         if box_refresh:
             image_id_list = self.get_box_image_ids_by_site()
@@ -260,7 +257,9 @@ class Command(BaseCommand):
         image_df = self.build_image_df(image_id_list)
         print(image_df)
 
-        photos = self.import_photo_objects(image_df)
+        if reload_photos:
+            Photo.objects.all().delete()
+            photos = self.import_photo_objects(image_df)
 
         # Check which images already uploaded
         current_thumbs = get_current_s3_matches(self.s3, self.bucket_name, 'media/thumbs')
