@@ -5,6 +5,7 @@ from pillow_heif import register_heif_opener
 
 from boxsdk import JWTAuth
 from boxsdk import Client
+import pandas as pd
 
 from django.conf import settings
 # from dk import BOX_JWT
@@ -37,7 +38,7 @@ def download_box_file(client, out_dir, box_id):
     return download_path
 
 
-def load_box_file(client, box_id):
+def load_box_image(client, box_id):
     '''Get a Box image file by ID and open in PIL for further operations'''
     if type(box_id) != float:
         box_obj = client.file(box_id).get()
@@ -52,6 +53,25 @@ def load_box_file(client, box_id):
         return im
     except UnidentifiedImageError:
         print(f'Error opening Box image {box_id}')
+        return False
+    
+
+def load_box_spreadsheet(client, box_id):
+    '''Get a Box spreadsheet file by ID and open in pandas for further operations'''
+    if type(box_id) != float:
+        box_obj = client.file(box_id).get()
+    else:
+        print(f'Error opening Box file {box_id}')
+        return False
+    
+    f = BytesIO(client.file(box_obj.id).content())
+    
+    try:
+        df = pd.read_csv(f)
+        return df
+    except:
+        raise
+        print(f'Error opening Box spreadsheet {box_id}')
         return False
 
 

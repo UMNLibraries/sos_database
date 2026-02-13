@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand
 from apps.park.models import Park
 from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
 from apps.photo.utils.gsheets import gsheets_login, get_gsheets_df
-from apps.photo.utils.box import get_box_client, build_folder_file_list, load_box_file
+from apps.photo.utils.box import get_box_client, build_folder_file_list, load_box_image
 from apps.photo.utils.image_processing import remove_exif, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
 
 from sos_database.storage_backends import PrivateMediaStorage
@@ -208,7 +208,7 @@ class Command(BaseCommand):
             bool_upload = True
             box = self.box
             # Get image from Box and open in PIL
-            im = load_box_file(box, row['box_id'])
+            im = load_box_image(box, row['box_id'])
 
             if not im:
                 print("WARNING: COULDN'T UPLOAD IMAGE.")

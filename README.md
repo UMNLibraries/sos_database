@@ -2,6 +2,21 @@
 
 A scratch version of a Django database for Save Our Signs
 
+## Workflow
+
+1. Qualtrics form
+2. Google sheet import for previous batch only because it contains moderations
+3. Box images/spreadsheet
+4. DB import and copy of images to private S3
+5. Admin editing
+6. Push to live public S3
+
+-Sept. 24 cutoff -- get only newer ones from Box
+
+## Bulk uploads
+
+
+
 ## Potential models
 
 State

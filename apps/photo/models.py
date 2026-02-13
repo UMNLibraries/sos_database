@@ -49,6 +49,8 @@ class Photo(models.Model):
     original_file_name = models.CharField(max_length=255)
 
     date_taken = models.DateField(null=True)
+    dt_form = models.DateTimeField(null=True)
+    dt_imported = models.DateTimeField(null=True, auto_now_add=True)
 
     # collection something something? probably separate m2m
 

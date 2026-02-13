@@ -17,6 +17,7 @@ pandas = "*"
 boxsdk = {extras = ["jwt"], version = "==3.14.0"}
 pillow-heif = "*"
 dalf = "*"
+python-slugify = "*"
 
 [dev-packages]
 
