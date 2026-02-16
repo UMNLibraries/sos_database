@@ -32,6 +32,8 @@ class Command(BaseCommand):
         'thumb_url', 'main_image_url', 's3_error'
     ]
 
+    # TODO: How do I get the numerical Box ID?
+
     raw_storage_class = 'GLACIER_IR'
     
     box = get_box_client()
@@ -93,14 +95,40 @@ class Command(BaseCommand):
 
         return form_response_df
     
+    def get_box_image_ids_by_site(self, site_code_list):
+        # Only run this cell if you need to re-generate image IDs
+        image_id_list = []
+        # box = get_box_client()
+        for park in Park.objects.exclude(box_folder_id='').filter(site_code__in=site_code_list):
+
+            print(f"Getting image IDs for {park.site_code} ({park.box_folder_id})")
+
+            image_id_list += build_folder_file_list(self.box, park.box_folder_id)
+
+        site_df = pd.DataFrame(image_id_list)
+        # print(image_id_list)
+
+        # os.makedirs(self.DATA_DIR, exist_ok=True)
+        # site_df.to_csv(self.BOX_IMAGE_IDS_CSV, index=False)
+
+        return site_df
+    
+    def get_box_image_ids_bulk(self):
+        '''Photos that did not go through stage 1 manual processing are in one big folder, not listed by site'''
+        
+        image_id_list = build_folder_file_list(self.box, settings.BOX_FORM_IMAGES_FOLDER_ID)
+        image_df = pd.DataFrame(image_id_list)
+        return image_df
+    
     def import_photo_objects(self, image_df):
         ''' This is simpler than the version in import_photos_gsheet because no moderation has happened yet.'''
-        parks_lookup = {park['site_code']: park['id'] for park in Park.objects.all().values('id', 'site_code')}
+        parks_lookup = {park['site_code']: {'id': park['id'], 'centerpoint': park['centerpoint']} for park in Park.objects.all().values('id', 'site_code', 'centerpoint')}
 
         photo_objs = []
         for index, row in image_df.iterrows():
 
-            park_id = parks_lookup[row['site_code']]
+            park_id = parks_lookup[row['site_code']]['id']
+            centerpoint = parks_lookup[row['site_code']]['centerpoint']
 
             try:
                 date_taken = datetime.datetime.strptime(row['date_taken'], "%m/%d/%Y").date()
@@ -118,7 +146,8 @@ class Command(BaseCommand):
                 dt_form=row['dt_form_submitted'],
                 title=row['title'],
                 additional_notes=row['additional_notes'],
-                # TODO: Add starting location values
+                location_orig=centerpoint,
+                location_type='PK',  # 'Park Centerpoint'
                 main_image_url=f"images/{get_jpg_filename(row['photo_file_name_final'])}",
                 thumb_url=f"thumbs/{get_jpg_filename(row['photo_file_name_final'])}",
             )
@@ -141,7 +170,7 @@ class Command(BaseCommand):
             'RecordedDate': 'dt_form_submitted',
             'Finished': 'upload_complete',
             'ResponseId': 'qualtrix_response_id',
-            'Q1_Id': 'box_id',
+            # 'Q1_Id': 'box_id',
             'Q1_Name': 'photo_file_name_orig',  # In Google sheet this value has qualtrix response ID added as a prefix -- should I look for images with or without that value?
             'Q6_1': 'park_name',
             'Q10': 'title',
@@ -152,7 +181,6 @@ class Command(BaseCommand):
             'dt_form_submitted',
             'upload_complete',
             'qualtrix_response_id',
-            'box_id',
             'photo_file_name_orig',
             'park_name',
             'title',
@@ -195,6 +223,27 @@ class Command(BaseCommand):
         print(f"{form_response_df.shape[0]} remaining new rows for import...")
 
         if form_response_df.shape[0] > 0:
+
+            # sites_with_updates = list(form_response_df['site_code'].drop_duplicates())
+
+            # # Get numerical Box IDs from Box
+            # # TODO: These IDs are not matching -- is it possible that Box folder IDs for each site changed?
+            # image_id_list = self.get_box_image_ids_by_site(sites_with_updates)
+
+            # Get numerical Box IDs from Box
+            image_id_list = self.get_box_image_ids_bulk()
+
+            print(image_id_list)
+            form_response_df = form_response_df.merge(
+                image_id_list,
+                how="left",
+                left_on="photo_file_name_final",
+                right_on="box_filename"
+            )
+            form_response_df['title'] = form_response_df['title'].fillna(value='')
+
+            form_response_df.to_csv(os.path.join(self.DATA_DIR, 'merge_test.csv'), index=False)
+
             self.import_photo_objects(form_response_df)
 
         # TODO: Ingest missing Box images to private Google storage
