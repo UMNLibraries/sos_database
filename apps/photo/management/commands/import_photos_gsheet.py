@@ -150,7 +150,7 @@ class Command(BaseCommand):
                 date_taken=date_taken,
                 title=row['title'],
                 additional_notes=row['additional_notes'],
-                location_orig=location_orig,
+                location=location_orig,
                 location_type=location_type,
                 main_image_url=f"images/{get_jpg_filename(row['photo_file_name'])}",
                 thumb_url=f"thumbs/{get_jpg_filename(row['photo_file_name'])}",

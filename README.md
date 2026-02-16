@@ -2,6 +2,13 @@
 
 A scratch version of a Django database for Save Our Signs
 
+## Steps for checking for new form entries
+```python
+python manage.py import_photos_box
+# If new photos found...
+python manage.py box_photos_to_private_s3
+```
+
 ## Workflow
 
 1. Qualtrics form

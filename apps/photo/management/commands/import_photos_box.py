@@ -146,7 +146,7 @@ class Command(BaseCommand):
                 dt_form=row['dt_form_submitted'],
                 title=row['title'],
                 additional_notes=row['additional_notes'],
-                location_orig=centerpoint,
+                location=centerpoint,
                 location_type='PK',  # 'Park Centerpoint'
                 main_image_url=f"images/{get_jpg_filename(row['photo_file_name_final'])}",
                 thumb_url=f"thumbs/{get_jpg_filename(row['photo_file_name_final'])}",
@@ -241,6 +241,7 @@ class Command(BaseCommand):
                 right_on="box_filename"
             )
             form_response_df['title'] = form_response_df['title'].fillna(value='')
+            form_response_df['additional_notes'] = form_response_df['additional_notes'].fillna(value='')
 
             form_response_df.to_csv(os.path.join(self.DATA_DIR, 'merge_test.csv'), index=False)
 
