@@ -1,0 +1,30 @@
+[
+  {
+    "model": "photo.photo",
+    "pk": 1,
+    "fields": {
+      "park": 1,
+      "sign": null,
+      "scope": "IN",
+      "status": "AP",
+      "box_id": "1234567",
+      "box_filename": "3pNMPeAeeJyMzYXpZVngYT_Lincoln01.png",
+      "photo_file_name": "3pNMPeAeeJyMzYXpZVngYT_Lincoln01.png",
+      "original_file_name": "Lincoln01",
+      "date_taken": "2022-09-25",
+      "dt_form": null,
+      "dt_imported": "2026-02-13T21:22:20.740Z",
+      "title": "The Family Bible",
+      "title_final": "The Family Bible",
+      "additional_notes": "",
+      "additional_notes_final": "",
+      "main_image_url": "images/3pNMPeAeeJyMzYXpZVngYT_Lincoln01.jpg",
+      "thumb_url": "thumbs/3pNMPeAeeJyMzYXpZVngYT_Lincoln01.jpg",
+      "location": "SRID=4326;POINT (-85.64442417 37.61198343473557)",
+      "location_final": "SRID=4326;POINT (-85.64442417 37.61198343473557)",
+      "location_type": "PK",
+      "location_type_final": "",
+      "bool_manual_correction": false
+    }
+  }
+]

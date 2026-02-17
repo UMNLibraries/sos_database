@@ -1,0 +1,9 @@
+[
+  {
+    "model": "park.sitetype",
+    "pk": 1,
+    "fields": {
+      "name": "National Park"
+    }
+  }
+]

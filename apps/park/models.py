@@ -7,6 +7,7 @@ class SiteType(models.Model):
     def __str__(self):
         return self.name
 
+
 class State(models.Model):
     name = models.CharField(max_length=255, db_index=True)
 

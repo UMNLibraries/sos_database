@@ -80,7 +80,7 @@ def build_public_manifest():
     final_df = public_df[public_fields]
     print(final_df)
 
-    final_df.to_csv(PUBLIC_MANIFEST_PATH, index=False)
+    # final_df.to_csv(PUBLIC_MANIFEST_PATH, index=False)
 
     return final_df
 

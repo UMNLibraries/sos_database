@@ -1,0 +1,19 @@
+[
+  {
+    "model": "park.park",
+    "pk": 1,
+    "fields": {
+      "name": "Test Park",
+      "site_code": "TEST",
+      "website": "https://www.theonion.com",
+      "box_folder_id": "123456",
+      "centerpoint": "SRID=4326;POINT (-85.6444 37.61198)",
+      "states": [
+        1
+      ],
+      "site_types": [
+        1
+      ]
+    }
+  }
+]

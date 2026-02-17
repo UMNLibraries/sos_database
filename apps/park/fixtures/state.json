@@ -1,0 +1,15 @@
+[
+  {
+    "model": "park.state",
+    "pk": 1,
+    "fields": {
+      "name": "Wisconsin"
+    }
+  }, {
+    "model": "park.state",
+    "pk": 2,
+    "fields": {
+      "name": "Minnesota"
+    }
+  }
+]
