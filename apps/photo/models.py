@@ -159,6 +159,7 @@ class ManualCorrection(models.Model):
     additional_notes = models.TextField(null=True, blank=True)
     location = models.PointField(srid=4326, null=True, blank=True)
     location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True)
+    comments = models.TextField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()
@@ -177,3 +178,34 @@ def model_delete(sender, instance, **kwargs):
         instance.photo.save()
     except AttributeError:
         pass
+
+
+# class RevisedPhoto(models.Model):
+#     '''Possible addition for cropped photos'''
+#     photo = models.ForeignKey(Photo, null=True, on_delete=models.SET_NULL)
+#     photo_file_name = models.CharField(max_length=255, null=True)
+
+#     # image urls
+#     main_image_url = models.ImageField(
+#         storage=PrivateMediaStorage(), upload_to="images", max_length=255, null=True, blank=True)
+#     thumb_url = models.ImageField(
+#         storage=PrivateMediaStorage(), upload_to="thumbs", max_length=255, null=True, blank=True)
+
+#     date_created = models.DateTimeField(auto_now_add=True)
+#     date_modified = models.DateTimeField(auto_now=True)
+#     history = HistoricalRecords()
+
+#     def save(self, *args, **kwargs):
+#         self.photo_file_name = self.photo.photo_file_name
+#         super(RevisedPhoto, self).save(*args, **kwargs)
+
+#         self.photo.save()
+
+
+# @receiver(models.signals.post_delete, sender=RevisedPhoto)
+# def model_delete(sender, instance, **kwargs):
+#     try:
+#         instance.photo.get_final_values()
+#         instance.photo.save()
+#     except AttributeError:
+#         pass
