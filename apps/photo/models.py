@@ -51,7 +51,7 @@ class Photo(models.Model):
     original_file_name = models.CharField(max_length=255)
 
     date_taken = models.DateField(null=True)
-    dt_form = models.DateTimeField(null=True)
+    dt_form = models.DateTimeField(null=True, verbose_name="Date submitted")
     dt_imported = models.DateTimeField(null=True, auto_now_add=True)
 
     # collection something something? probably separate m2m
@@ -70,7 +70,7 @@ class Photo(models.Model):
 
     #location info
     location = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (original)")
-    location_final = models.PointField(srid=4326, null=True, blank=True)
+    location_final = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (current)")
     # location_source
     location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True, verbose_name="Location type (original)")
     location_type_final = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True)

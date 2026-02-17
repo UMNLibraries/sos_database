@@ -149,9 +149,13 @@ class Command(BaseCommand):
                 original_file_name=row['original_file_name'],
                 date_taken=date_taken,
                 title=row['title'],
+                title_final=row['title'],  # Set initial "final" value
                 additional_notes=row['additional_notes'],
+                additional_notes_final=row['additional_notes'],  # Set initial "final" value
                 location=location_orig,
+                location_final=location_orig,  # Set initial "final" value
                 location_type=location_type,
+                location_type_final=location_type,  # Set initial "final" value
                 main_image_url=f"images/{get_jpg_filename(row['photo_file_name'])}",
                 thumb_url=f"thumbs/{get_jpg_filename(row['photo_file_name'])}",
             )

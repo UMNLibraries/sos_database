@@ -9,6 +9,7 @@ import numpy as np
 from slugify import slugify
 from multiprocessing.pool import ThreadPool
 from django.contrib.gis.geos import Point
+from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
 from apps.park.models import Park
@@ -134,7 +135,7 @@ class Command(BaseCommand):
                 date_taken = datetime.datetime.strptime(row['date_taken'], "%m/%d/%Y").date()
             except ValueError:
                 date_taken = None
-
+                
             photo = Photo(
                 park_id=park_id,
                 status='RD',  # 'Ready for Review'
@@ -143,11 +144,15 @@ class Command(BaseCommand):
                 photo_file_name=row['photo_file_name_final'],
                 original_file_name=row['photo_file_name_orig'],
                 date_taken=date_taken,
-                dt_form=row['dt_form_submitted'],
+                dt_form=f"{row['dt_form_submitted']}Z",
                 title=row['title'],
+                title_final=row['title'],  # Set initial "final" value
                 additional_notes=row['additional_notes'],
+                additional_notes_final=row['additional_notes'],  # Set initial "final" value
                 location=centerpoint,
+                location_final=centerpoint,  # Set initial "final" value
                 location_type='PK',  # 'Park Centerpoint'
+                location_type_final='PK',  # Set initial "final" value
                 main_image_url=f"images/{get_jpg_filename(row['photo_file_name_final'])}",
                 thumb_url=f"thumbs/{get_jpg_filename(row['photo_file_name_final'])}",
             )
