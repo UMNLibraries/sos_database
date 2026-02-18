@@ -22,6 +22,14 @@ class Park(models.Model):
     states = models.ManyToManyField(State)
     site_types = models.ManyToManyField(SiteType)
 
+    parent_site = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='child_sites'
+    )
+
     # Initially, imported from PHOTO Google sheet, not park list
     box_folder_id = models.CharField(max_length=255, blank=True)
 

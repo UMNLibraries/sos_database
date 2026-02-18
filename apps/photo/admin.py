@@ -22,7 +22,7 @@ class ParkAdmin(admin.GISModelAdmin):
     search_fields = ['name']
     ordering = ['name']
 
-    autocomplete_fields = ['states', 'site_types']
+    autocomplete_fields = ['states', 'site_types', 'parent_site']
 
     gis_widget_kwargs = {
         'attrs': {
