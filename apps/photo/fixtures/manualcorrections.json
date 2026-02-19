@@ -1,0 +1,16 @@
+[
+  {
+    "model": "photo.manualcorrection",
+    "pk": 1,
+    "fields": {
+      "photo": 1,
+      "title": "test title",
+      "additional_notes": "test additional notes",
+      "location":  "SRID=4326;POINT (-85.64442417 37.61198343473557)",
+      "location_type": "PK",
+      "comments": "Comments",
+      "date_created": "2026-01-01",
+      "date_modified": "2026-01-01"
+    }
+  }
+]

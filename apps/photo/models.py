@@ -159,7 +159,7 @@ class ManualCorrection(models.Model):
     additional_notes = models.TextField(null=True, blank=True)
     location = models.PointField(srid=4326, null=True, blank=True)
     location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True)
-    comments = models.TextField(null=True)
+    comments = models.TextField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()

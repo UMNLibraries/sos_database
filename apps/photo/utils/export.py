@@ -1,8 +1,10 @@
 import os
+import datetime
 import pandas as pd
 from django.db.models import Func, FloatField
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.conf import settings
+from django.apps import apps
 
 from apps.photo.models import Photo
 
@@ -86,3 +88,36 @@ def build_public_manifest():
 
     # from apps.photo.utils.export import build_public_manifest
     # build_public_manifest()
+
+
+def dump_cx_model_backups(app_name, model_name):
+    model = apps.get_model(app_name, model_name)
+
+    objs = model.objects.all().values()
+
+    df = pd.DataFrame(objs)
+    if df.shape[0] == 0:
+        print (f"No {model_name} records found.")
+        return False
+    df.rename(columns={'id': 'db_id'}, inplace=True)
+
+    # Drop primary key of photo foreign key because it will have changed on re-import
+    df.drop(
+        columns=['photo_id'], inplace=True, errors='ignore')
+
+    print(df)
+    # outfile = save_backup_file(df, model_name.lower())
+
+    return df
+
+
+def save_backup_file(df, filename_root):
+    backup_dir = os.path.join(settings.BASE_DIR, 'data', 'backup')
+    os.makedirs(backup_dir, exist_ok=True)
+
+    outfile = os.path.join(backup_dir,
+                            f'{filename_root}_{datetime.datetime.now().date()}.csv')
+    print(outfile)
+    df.to_csv(outfile, index=False)
+
+    return outfile
