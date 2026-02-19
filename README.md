@@ -2,6 +2,14 @@
 
 A scratch version of a Django database for Save Our Signs
 
+## Building DB from scratch
+```
+python manage.py import_park_sites
+python manage.py import_photos_gsheet --reload_objs.  # First batch files
+python manage.py import_photos_box  # Files that weren't in first batch
+python manage.py box_photos_to_private_s3
+```
+
 ## Steps for checking for new form entries
 ```python
 python manage.py import_photos_box
