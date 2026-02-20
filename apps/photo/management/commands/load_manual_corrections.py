@@ -24,25 +24,16 @@ class Command(BaseCommand):
 
             print("Loading manual corrections...")
 
-            # TODO: Make sure ManualCorrection is a CSVModel
             mapping = {
-                # model: csv
-                'zoon_subject_id': 'zoon_subject_id',
-                'zoon_workflow_id': 'zoon_workflow_id',
-                'bool_covenant': 'bool_covenant',
-                'covenant_text': 'covenant_text',
-                'addition': 'addition',
-                'lot': 'lot',
-                'block': 'block',
-                'map_book': 'map_book',
-                'map_book_page': 'map_book_page',
-                'seller': 'seller',
-                'buyer': 'buyer',
-                'deed_date': 'deed_date',
-                'date_added': 'date_added',
-                'date_updated': 'date_updated',
-                'match_type': 'match_type',
+                # model_value: csv_value
+                'photo_file_name': 'photo_file_name',
+                'title': 'title',
+                'additional_notes': 'additional_notes',
+                'location': 'location',
+                'location_type': 'location_type',
                 'comments': 'comments',
+                'date_created': 'date_created',
+                'date_modified': 'date_modified',
             }
 
             insert_count = ManualCorrection.objects.from_csv(
@@ -50,4 +41,4 @@ class Command(BaseCommand):
             print("{} records inserted".format(insert_count))
 
             management.call_command(
-                'connect_manual_corrections', workflow=workflow_name)
+                'connect_manual_corrections')

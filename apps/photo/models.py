@@ -2,6 +2,7 @@ from django.dispatch import receiver
 from django.contrib.gis.db import models
 from django.utils.html import mark_safe
 from simple_history.models import HistoricalRecords
+from postgres_copy import CopyManager
 
 from sos_database.storage_backends import PrivateMediaStorage
 
@@ -158,11 +159,12 @@ class ManualCorrection(models.Model):
     title = models.TextField(null=True, blank=True)
     additional_notes = models.TextField(null=True, blank=True)
     location = models.PointField(srid=4326, null=True, blank=True)
-    location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True)
+    location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()
+    objects = CopyManager()
 
     def save(self, *args, **kwargs):
         self.photo_file_name = self.photo.photo_file_name

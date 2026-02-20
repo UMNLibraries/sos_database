@@ -121,3 +121,20 @@ def save_backup_file(df, filename_root):
     df.to_csv(outfile, index=False)
 
     return outfile
+
+
+def fill_final_value(attr):
+    '''Find objs without a _final value set and fill them with initial import values'''
+
+    update_objs = []
+
+    attr_filter = {
+        f'{attr}_final__isnull': True,
+    }
+
+    for p in Photo.objects.filter(**attr_filter):
+        # Set final value to initial value
+        setattr(p, f"{attr}_final", getattr(p, attr))
+        update_objs.append(p)
+
+    Photo.objects.bulk_update(update_objs, [f'{attr}_final']) 
