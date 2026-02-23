@@ -23,7 +23,6 @@ class Command(BaseCommand):
         cx_photos_lookup = {sbj['photo_file_name']: sbj['pk'] for sbj in Photo.objects.filter(
             photo_file_name__in=cx_photo_ids
         ).values('pk', 'photo_file_name')}
-        print(len(cx_photos_lookup.keys()))
 
         print(
             f'Attaching {cx_objs.count()} ManualCorrection objects to photo objects...')
@@ -62,12 +61,6 @@ class Command(BaseCommand):
                 ).values(attr_root)[:1]
             )
         }
-
-        print(Photo.objects.exclude(
-            **null_kwargs
-        ).exclude(
-            **blank_kwargs
-        ).count())
 
         Photo.objects.exclude(
             **null_kwargs

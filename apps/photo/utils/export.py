@@ -117,7 +117,7 @@ def save_backup_file(df, filename_root):
 
     outfile = os.path.join(backup_dir,
                             f'{filename_root}_{datetime.datetime.now().date()}.csv')
-    print(outfile)
+    # print(outfile)
     df.to_csv(outfile, index=False)
 
     return outfile
