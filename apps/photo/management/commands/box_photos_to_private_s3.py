@@ -47,12 +47,6 @@ class Command(BaseCommand):
         parser.add_argument('-l', '--limit', type=int, default=-1,
                         help='Only upload a certain number of images, primarily for testing')
 
-        # parser.add_argument('-b', '--box_refresh', action='store_true',
-        #                 help='Re-generate CSV of Box Image IDs.')
-
-        # parser.add_argument('-r', '--reload_objs', action='store_true',
-        #                 help='Delete and re-create Django Photo instances.')
-
         parser.add_argument('-y', '--dry', action='store_true',
                         help='Just tell me how many keys are left to upload and exit.')
         

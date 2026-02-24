@@ -1,24 +1,15 @@
 import os
 import re
-import csv
-import boto3
-import time
 import datetime
 import pandas as pd
-import numpy as np
 from slugify import slugify
-from multiprocessing.pool import ThreadPool
-from django.contrib.gis.geos import Point
-from django.utils.timezone import make_aware
 from django.core.management.base import BaseCommand
 
 from apps.park.models import Park
 from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
-from apps.photo.utils.gsheets import gsheets_login, get_gsheets_df
-from apps.photo.utils.box import get_box_client, build_folder_file_list, load_box_image, load_box_spreadsheet
-from apps.photo.utils.image_processing import remove_exif, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
+from apps.photo.utils.box import get_box_client, build_folder_file_list, load_box_spreadsheet
+from apps.photo.utils.image_processing import get_jpg_filename
 
-from sos_database.storage_backends import PrivateMediaStorage
 from django.conf import settings
 
 
@@ -33,39 +24,9 @@ class Command(BaseCommand):
         'thumb_url', 'main_image_url', 's3_error'
     ]
 
-    # TODO: How do I get the numerical Box ID?
-
     raw_storage_class = 'GLACIER_IR'
     
     box = get_box_client()
-    # gsheets = gsheets_login()
-    # session = boto3.Session(profile_name='sos')
-    # s3 = session.client('s3', region_name='us-east-2')
-    # upload_batch_size = -1
-    # bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-
-    # min_thread_time = None
-    # num_threads = None
-
-    # def add_arguments(self, parser):
-
-    #     parser.add_argument('-l', '--limit', type=int, default=-1,
-    #                     help='Only upload a certain number of images, primarily for testing')
-
-    #     parser.add_argument('-b', '--box_refresh', action='store_true',
-    #                     help='Re-generate CSV of Box Image IDs.')
-
-    #     parser.add_argument('-r', '--reload_objs', action='store_true',
-    #                     help='Delete and re-create Django Photo instances.')
-
-    #     parser.add_argument('-y', '--dry', action='store_true',
-    #                     help='Just tell me how many keys are left to upload and exit.')
-        
-    #     parser.add_argument('-p', '--pool', type=int, default=8,
-    #                         help='How many threads to use? (Default is 8)')
-
-    #     parser.add_argument('-m', '--mintime', type=float, default=0,
-    #                         help='What is the minimum time to execute each thread (rate limit) in seconds (Default is 0)')
 
     def build_real_box_filename(self, row):
         '''Modified from Melinda code: clean original file name and then construct 'photo_file_name'. Using custom replace instead of slugify to match what is being done in Qualtrix upload'''
@@ -163,13 +124,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         form_response_df = load_box_spreadsheet(self.box, settings.BOX_FORM_RESPONSES_FILE_ID)
-        print(form_response_df)
+        # print(form_response_df)
 
-        print(form_response_df.columns)
-    #     ['StartDate', 'EndDate', 'Status', 'Progress', 'Duration (in seconds)',
-    #    'Finished', 'RecordedDate', 'ResponseId', 'DistributionChannel',
-    #    'UserLanguage', 'Q_RecaptchaScore', 'Q1_Id', 'Q1_Name', 'Q1_Size',
-    #    'Q1_Type', 'Q2', 'Q6_1', 'Q10', 'Q7', 'Q2.1', 'Q20', 'Q2_1', 'Q21']
+        # print(form_response_df.columns)
         
         form_response_df = form_response_df.rename(columns={
             'RecordedDate': 'dt_form_submitted',
@@ -229,12 +186,6 @@ class Command(BaseCommand):
 
         if form_response_df.shape[0] > 0:
 
-            # sites_with_updates = list(form_response_df['site_code'].drop_duplicates())
-
-            # # Get numerical Box IDs from Box
-            # # TODO: These IDs are not matching -- is it possible that Box folder IDs for each site changed?
-            # image_id_list = self.get_box_image_ids_by_site(sites_with_updates)
-
             # Get numerical Box IDs from Box
             image_id_list = self.get_box_image_ids_bulk()
 
@@ -251,5 +202,3 @@ class Command(BaseCommand):
             form_response_df.to_csv(os.path.join(self.DATA_DIR, 'merge_test.csv'), index=False)
 
             self.import_photo_objects(form_response_df)
-
-        # TODO: Ingest missing Box images to private Google storage
