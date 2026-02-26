@@ -52,13 +52,13 @@ class ManualCorrectionInline(admin.StackedInline):
                     # 'modifiable': False
                 })
         return super().formfield_for_dbfield(db_field,**kwargs)
-   
+       
 
 class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
     # TODO: Change these to "_final" once those are populated
-    search_fields = ['title', 'additional_notes', 'photo_file_name']
+    search_fields = ['title', 'title_final', 'additional_notes', 'additional_notes_final', 'photo_file_name']
 
-    list_display = ['__str__', 'title', 'scope', 'status', 'date_taken']
+    list_display = ['__str__', 'title_final', 'scope', 'status', 'date_taken']
 
     list_filter = (
         ('park', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK)
@@ -88,7 +88,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
                 'status',
                 'bool_manual_correction',
                 'location_final',
-                'location',
+                'location_embedded',
                 # 'location_final',
                 'get_location_type',
                 'location_type',

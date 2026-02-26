@@ -12,9 +12,9 @@ from django.core.management.base import BaseCommand
 
 from apps.park.models import Park
 from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
-from apps.photo.utils.gsheets import gsheets_login, get_gsheets_df
-from apps.photo.utils.box import get_box_client, build_folder_file_list, load_box_image
-from apps.photo.utils.image_processing import remove_exif, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
+from apps.photo.utils.gsheets import gsheets_login
+from apps.photo.utils.box import get_box_client, load_box_image, get_box_file_as_tempfile
+from apps.photo.utils.image_processing import remove_exif, get_gps_info, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
 
 from sos_database.storage_backends import PrivateMediaStorage
 from django.conf import settings
@@ -27,7 +27,7 @@ class Command(BaseCommand):
     LOGGING_MANIFEST_PATH = os.path.join(DATA_DIR, 's3_upload_results.csv')
 
     logging_keys = [
-        'box_id', 'photo_file_name', 'thumb_url', 'main_image_url', 's3_error'
+        'box_id', 'photo_file_name', 'thumb_url', 'main_image_url', 's3_error', 'image_latitude', 'image_longitude'
     ]
 
     raw_storage_class = 'GLACIER_IR'
@@ -38,9 +38,11 @@ class Command(BaseCommand):
     s3 = session.client('s3', region_name='us-east-2')
     upload_batch_size = -1
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    embedded_locations = []
 
     min_thread_time = None
     num_threads = None
+    bool_extract_locations = False
 
     def add_arguments(self, parser):
 
@@ -49,6 +51,9 @@ class Command(BaseCommand):
 
         parser.add_argument('-y', '--dry', action='store_true',
                         help='Just tell me how many keys are left to upload and exit.')
+        
+        parser.add_argument('-l', '--no-location', action='store_false',
+                        help='Do NOT try to extract location info from Box file while importing.')
         
         parser.add_argument('-p', '--pool', type=int, default=8,
                             help='How many threads to use? (Default is 8)')
@@ -112,6 +117,20 @@ class Command(BaseCommand):
                 thumb_url = None
                 main_image_url = None
             else:
+                # Check for location data unless --no-location passed
+                if self.bool_extract_locations:
+                    infile = get_box_file_as_tempfile(box, row['box_id'])
+                    location_info = get_gps_info(infile)
+                    os.remove(infile)
+                    if location_info:
+                        row['image_latitude'] = location_info['latitude']
+                        row['image_longitude'] = location_info['longitude']
+
+                        self.embedded_locations.append(row)
+
+                    else:
+                        row['image_latitude'] = ''
+                        row['image_longitude'] = ''
 
                 if row['thumb_uploaded'] == False:
                     print(f"Uploading thumbnail {row['thumb_url']}...")
@@ -137,6 +156,25 @@ class Command(BaseCommand):
                 time.sleep(time_remaining)
 
         return row
+    
+    def add_embedded_locations(self):
+        '''After going through all new Box photos, attach any found location info to the Photo instance.'''
+
+        update_objs = []
+
+        photo_lookup_filenames = [p['photo_file_name'] for p in self.embedded_locations]
+
+        photos_to_update = Photo.objects.filter(
+            photo_file_name__in=photo_lookup_filenames
+        )
+
+        for p in photos_to_update:
+            matching_row = next((p for p in self.embedded_locations if p['photo_file_name'] == p.photo_file_name), None)
+            if matching_row:
+                p.location_embedded = Point(float(matching_row['longitude']), float(matching_row['latitude']))
+                update_objs.append(p)
+
+        Photo.objects.bulk_update(update_objs, ['location_embedded'])
         
     def handle(self, *args, **kwargs):
         # reload_photos = kwargs['reload_objs']
@@ -144,6 +182,7 @@ class Command(BaseCommand):
         self.upload_batch_size = kwargs['limit']
         self.min_thread_time = kwargs['mintime']
         self.num_threads = kwargs['pool']
+        self.bool_extract_locations = kwargs['no-location']
     
         # Check which images already uploaded
         current_thumbs = get_current_s3_matches(self.s3, self.bucket_name, 'media/thumbs')
@@ -162,3 +201,6 @@ class Command(BaseCommand):
             return False
 
         self.upload_missing_files(upload_list)
+
+        if self.bool_extract_locations:
+            self.add_embedded_locations()

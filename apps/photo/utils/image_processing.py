@@ -3,7 +3,9 @@ import os
 import requests
 import argparse
 from PIL import Image, ImageOps
+from PIL.ExifTags import TAGS, GPSTAGS
 from urllib.parse import urlsplit
+import exifread as ef
 
 from io import BytesIO
 
@@ -88,3 +90,71 @@ def get_current_s3_matches(s3, bucket_name, prefix):
             matching_keys += [obj['Key'] for obj in page['Contents'] if re.match(key_filter, obj['Key'])]
 
     return matching_keys
+
+
+def get_exif_data_general(im):
+    # im = ImageOps.exif_transpose(im)
+
+    exif_data = im.getexif()
+    if not exif_data:
+        print("No EXIF data found.")
+        return None
+    
+    labeled_data = {}
+    for tag_id, value in exif_data.items():
+        tag_name = TAGS.get(tag_id, tag_id)
+        labeled_data[tag_name] = value
+    print(labeled_data)
+    
+    # print(exif_data)
+    return labeled_data
+
+
+def convert_to_degrees(value):
+    """
+    Helper function to convert the GPS coordinates stored in the EXIF to degress in float format
+    :param value:
+    :type value: exifread.utils.Ratio
+    :rtype: float
+    """
+    try:
+        d = float(value.values[0].num) / float(value.values[0].den)
+        m = float(value.values[1].num) / float(value.values[1].den)
+        s = float(value.values[2].num) / float(value.values[2].den)
+
+        return d + (m / 60.0) + (s / 3600.0)
+    except ZeroDivisionError:
+        print('Cannot divide by 0...')
+        print(value)
+        return None
+
+
+def get_gps_info(file_path):
+    '''
+    From Melinda: returns gps data if present other wise returns empty dictionary
+    '''
+    with open(file_path, 'rb') as f:
+        tags = ef.process_file(f)
+        latitude = tags.get('GPS GPSLatitude')
+        latitude_ref = tags.get('GPS GPSLatitudeRef')
+        longitude = tags.get('GPS GPSLongitude')
+        longitude_ref = tags.get('GPS GPSLongitudeRef')
+        if latitude:
+            lat_value = convert_to_degrees(latitude)
+            if lat_value:
+                if latitude_ref.values != 'N':
+                    lat_value = -lat_value
+            else:
+                return None
+        else:
+            return None
+        if longitude:
+            lon_value = convert_to_degrees(longitude)
+            if lon_value:
+                if longitude_ref.values != 'E':
+                    lon_value = -lon_value
+            else:
+                return None
+        else:
+            return None
+        return {'latitude': lat_value, 'longitude': lon_value}

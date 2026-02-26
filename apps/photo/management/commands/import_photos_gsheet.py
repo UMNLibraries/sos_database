@@ -152,7 +152,7 @@ class Command(BaseCommand):
                 title_final=row['title'],  # Set initial "final" value
                 additional_notes=row['additional_notes'],
                 additional_notes_final=row['additional_notes'],  # Set initial "final" value
-                location=location_orig,
+                # location=location_orig,  # Don't set this now, instead have location_embedded value that requires opening the image in Box
                 location_final=location_orig,  # Set initial "final" value
                 location_type=location_type,
                 location_type_final=location_type,  # Set initial "final" value
@@ -193,58 +193,58 @@ class Command(BaseCommand):
 
         return upload_list
     
-    def upload_missing_files(self, upload_list):
+    # def upload_missing_files(self, upload_list):
         
-        with open(self.LOGGING_MANIFEST_PATH, 'w') as done_manifest:
-            done_manifest.write(','.join(self.logging_keys) + "\n")
+    #     with open(self.LOGGING_MANIFEST_PATH, 'w') as done_manifest:
+    #         done_manifest.write(','.join(self.logging_keys) + "\n")
 
-        pool = ThreadPool(processes=self.num_threads)
-        pool.map(self.send_to_s3, upload_list)
+    #     pool = ThreadPool(processes=self.num_threads)
+    #     pool.map(self.send_to_s3, upload_list)
 
-    def send_to_s3(self, row):
+    # def send_to_s3(self, row):
         
-        bucket_name = self.bucket_name
-        start_time = time.time()
-        s3_error = False
-        bool_upload = False
+    #     bucket_name = self.bucket_name
+    #     start_time = time.time()
+    #     s3_error = False
+    #     bool_upload = False
 
-        if row['thumb_uploaded'] == False or row['main_image_uploaded'] == False:
-            bool_upload = True
-            box = self.box
-            # Get image from Box and open in PIL
-            im = load_box_image(box, row['box_id'])
+    #     if row['thumb_uploaded'] == False or row['main_image_uploaded'] == False:
+    #         bool_upload = True
+    #         box = self.box
+    #         # Get image from Box and open in PIL
+    #         im = load_box_image(box, row['box_id'])
 
-            if not im:
-                print("WARNING: COULDN'T UPLOAD IMAGE.")
-                s3_error = True
-                thumb_url = None
-                main_image_url = None
-            else:
+    #         if not im:
+    #             print("WARNING: COULDN'T UPLOAD IMAGE.")
+    #             s3_error = True
+    #             thumb_url = None
+    #             main_image_url = None
+    #         else:
 
-                if row['thumb_uploaded'] == False:
-                    print(f"Uploading thumbnail {row['thumb_url']}...")
-                    thumb_url = thumbnail_to_s3(self.s3, remove_exif(im), bucket_name, row['thumb_key'], row['thumb_url'])
+    #             if row['thumb_uploaded'] == False:
+    #                 print(f"Uploading thumbnail {row['thumb_url']}...")
+    #                 thumb_url = thumbnail_to_s3(self.s3, remove_exif(im), bucket_name, row['thumb_key'], row['thumb_url'])
         
-                if row['main_image_uploaded'] == False:
-                    print(f"Uploading image {row['main_image_url']}...")
-                    main_image_url = image_to_s3(self.s3, remove_exif(im), bucket_name, row['main_key'], row['thumb_url'])
+    #             if row['main_image_uploaded'] == False:
+    #                 print(f"Uploading image {row['main_image_url']}...")
+    #                 main_image_url = image_to_s3(self.s3, remove_exif(im), bucket_name, row['main_key'], row['thumb_url'])
  
-        row['s3_error'] = s3_error
-        # print(row)
+    #     row['s3_error'] = s3_error
+    #     # print(row)
     
-        with open(self.LOGGING_MANIFEST_PATH, 'a') as csvfile:
-            spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
-            spamwriter.writerow(row.values())
+    #     with open(self.LOGGING_MANIFEST_PATH, 'a') as csvfile:
+    #         spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+    #         spamwriter.writerow(row.values())
 
-        # If necessary, wait before completing
-        if bool_upload and self.min_thread_time > 0:
-            elapsed = time.time() - start_time
-            time_remaining = self.min_thread_time - elapsed
-            if time_remaining > 0:
-                print(f'Pausing {time_remaining} seconds')
-                time.sleep(time_remaining)
+    #     # If necessary, wait before completing
+    #     if bool_upload and self.min_thread_time > 0:
+    #         elapsed = time.time() - start_time
+    #         time_remaining = self.min_thread_time - elapsed
+    #         if time_remaining > 0:
+    #             print(f'Pausing {time_remaining} seconds')
+    #             time.sleep(time_remaining)
 
-        return row
+    #     return row
         
     def handle(self, *args, **kwargs):
         reload_photos = kwargs['reload_objs']
@@ -277,4 +277,4 @@ class Command(BaseCommand):
             # Exit without uploading.
             return False
 
-        self.upload_missing_files(upload_list)
+        # self.upload_missing_files(upload_list).  # Deprecated by box_photos_to_private_s3 command

@@ -1,4 +1,5 @@
 import os
+from tempfile import NamedTemporaryFile
 from io import BytesIO
 from PIL import Image, UnidentifiedImageError
 from pillow_heif import register_heif_opener
@@ -38,6 +39,26 @@ def download_box_file(client, out_dir, box_id):
     return download_path
 
 
+def get_box_file_as_tempfile(client, box_id):
+    '''Get a Box image file by ID and open as BytesIO file-like object'''
+    if type(box_id) != float:
+        box_obj = client.file(box_id).get()
+    else:
+        print(f'Error opening Box image {box_id}')
+        return False
+    
+    with NamedTemporaryFile(delete=False) as temp_file:
+
+        f = BytesIO(client.file(box_obj.id).content())
+        temp_file.write(f.read())
+        temp_file.flush() # Ensure the data is written to disk
+        temp_file.seek(0)
+        temp_file_name = temp_file.name
+        # print(f"Temporary file created at: {temp_file_name}")
+
+        return temp_file_name
+
+
 def load_box_image(client, box_id):
     '''Get a Box image file by ID and open in PIL for further operations'''
     if type(box_id) != float:
@@ -54,6 +75,7 @@ def load_box_image(client, box_id):
     except UnidentifiedImageError:
         print(f'Error opening Box image {box_id}')
         return False
+
     
 
 def load_box_spreadsheet(client, box_id):

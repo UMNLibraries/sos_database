@@ -70,7 +70,8 @@ class Photo(models.Model):
         storage=PrivateMediaStorage(), upload_to="thumbs", max_length=255, null=True, blank=True)
 
     #location info
-    location = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (original)")
+    location_embedded = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (Embedded in photo)")
+    # location = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (original)")
     location_final = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (current)")
     # location_source
     location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True, verbose_name="Location type (original)")
@@ -98,6 +99,14 @@ class Photo(models.Model):
             return getattr(obj, attr)
         return getattr(self, attr)
     
+    def check_embedded_location(self):
+        if self.location_type == 'US' and self.location_embedded:
+            self.location_final = self.location_embedded
+            self.location_type_final = 'US'
+        else:
+            self.location_final = self.park.centerpoint
+            self.location_type_final = 'PK'
+    
     def get_final_values(self):
         self.bool_manual_correction = False
         if self.manualcorrection_set.count() > 0:
@@ -109,18 +118,24 @@ class Photo(models.Model):
             if self.additional_notes_final != self.additional_notes:
                 self.bool_manual_correction = True
 
-            self.location_final = self.get_final_value(self.manualcorrection_set.first(), 'location')
-            if self.location_final != self.location:
-                self.bool_manual_correction = True
+            # Location logic
+            # if embedded location in image, save to location_embedded
+            # By default, set location_type to park centerpoint and extract location from Park model to set location_final
+            # If location type set to US, extract location from location_embedded
+            # If manual correction, use manualcorrection value for location_final and location_type_final
 
-            self.location_type_final = self.get_final_value(self.manualcorrection_set.first(), 'location_type')
-            if self.location_type_final != self.location_type:
+            if self.manualcorrection_set.first().location:
+                self.location_final = self.manualcorrection_set.first().location
+                self.location_type_final = 'SOS'
                 self.bool_manual_correction = True
+            else:
+                self.check_embedded_location()
+
         else:
             self.title_final = self.title
             self.additional_notes_final = self.additional_notes
-            self.location_final = self.location
-            self.location_type_final = self.location_type
+
+            self.check_embedded_location()
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -159,7 +174,7 @@ class ManualCorrection(models.Model):
     title = models.TextField(null=True, blank=True)
     additional_notes = models.TextField(null=True, blank=True)
     location = models.PointField(srid=4326, null=True, blank=True)
-    location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, null=True, blank=True)
+    # location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)

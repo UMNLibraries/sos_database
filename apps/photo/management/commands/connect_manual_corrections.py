@@ -70,6 +70,23 @@ class Command(BaseCommand):
             **update_kwargs_outer
         )
 
+    def set_location_final(self):
+        '''Only overwrite location_final if value is present'''
+        Photo.objects.filter(
+        ).exclude(
+            manualcorrection__location__isnull=True
+        ).exclude(
+            manualcorrection__location__exact=''
+        ).update(
+            location_final=Subquery(
+                ManualCorrection.objects.filter(
+                    photo=OuterRef('pk')
+                ).values('location')[:1]
+            ),
+            location_type_final='SOS'
+        )
+
+
     def set_final_values(self):
         '''Once you are saving subjects one by one, the code in the model definition handles this. But you need to set initial values all at once, rather than looping through each.'''
         print('Setting "final" values, taking into account re-connected ManualCorrections')
@@ -105,28 +122,29 @@ class Command(BaseCommand):
 
         self.set_string_final('title')
         self.set_string_final('additional_notes')
-        self.set_string_final('location', False)  # This needs to be fancier
-        self.set_string_final('location_type')
+        self.set_location_final()
+        # self.set_string_final('location', False)  # This needs to be fancier
+        # self.set_string_final('location_type')
 
-        print('Set everything else w/o manualcorrection to initial import value...')
-        # Photo.objects.filter(
-        #     manualcorrection__isnull=True
-        # ).update(
-        #     bool_manual_correction=False,
-        #     bool_covenant_final=F('bool_covenant'),
-        #     covenant_text_final=F('covenant_text'),
-        #     addition_final=F('addition'),
-        #     lot_final=F('lot'),
-        #     block_final=F('block'),
-        #     map_book_final=F('map_book'),
-        #     map_book_page_final=F('map_book_page'),
-        #     seller_final=F('seller'),
-        #     buyer_final=F('buyer'),
-        #     deed_date_final=F('deed_date'),
-        #     match_type_final=F('match_type'),
-        # )
-        for attr in ['title', 'additional_notes', 'location', 'location_type']:
-            fill_final_value(attr)
+        # print('Set everything else w/o manualcorrection to initial import value...')
+        # # Photo.objects.filter(
+        # #     manualcorrection__isnull=True
+        # # ).update(
+        # #     bool_manual_correction=False,
+        # #     bool_covenant_final=F('bool_covenant'),
+        # #     covenant_text_final=F('covenant_text'),
+        # #     addition_final=F('addition'),
+        # #     lot_final=F('lot'),
+        # #     block_final=F('block'),
+        # #     map_book_final=F('map_book'),
+        # #     map_book_page_final=F('map_book_page'),
+        # #     seller_final=F('seller'),
+        # #     buyer_final=F('buyer'),
+        # #     deed_date_final=F('deed_date'),
+        # #     match_type_final=F('match_type'),
+        # # )
+        # for attr in ['title', 'additional_notes', 'location', 'location_type']:
+        #     fill_final_value(attr)
 
     def handle(self, *args, **kwargs):
 

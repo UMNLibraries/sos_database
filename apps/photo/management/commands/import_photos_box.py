@@ -16,8 +16,8 @@ from django.conf import settings
 class Command(BaseCommand):
 
     DATA_DIR = os.path.join(settings.BASE_DIR, 'data')
-    BOX_IMAGE_IDS_CSV = os.path.join(DATA_DIR, 'box_image_id_lookup.csv')
-    LOGGING_MANIFEST_PATH = os.path.join(DATA_DIR, 's3_upload_results.csv')
+    # BOX_IMAGE_IDS_CSV = os.path.join(DATA_DIR, 'box_image_id_lookup.csv')
+    # LOGGING_MANIFEST_PATH = os.path.join(DATA_DIR, 's3_upload_results.csv')
 
     logging_keys = [
         'Scope', 'Metadata edits', 'box_foldername', 'photo_file_name', 'title', 'additional_notes', 'date_taken', 'collection', 'park_name', 'id', 'original_file_name', 'ext', 'longitude', 'latitude', 'location_source', 'type', 'alpha_code', 'box_id', 'box_filename',
@@ -110,7 +110,7 @@ class Command(BaseCommand):
                 title_final=row['title'],  # Set initial "final" value
                 additional_notes=row['additional_notes'],
                 additional_notes_final=row['additional_notes'],  # Set initial "final" value
-                location=centerpoint,
+                # location=centerpoint,  # Don't set this now, instead have location_embedded value that requires opening the image in Box
                 location_final=centerpoint,  # Set initial "final" value
                 location_type='PK',  # 'Park Centerpoint'
                 location_type_final='PK',  # Set initial "final" value
