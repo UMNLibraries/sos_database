@@ -19,10 +19,10 @@ class Command(BaseCommand):
     # BOX_IMAGE_IDS_CSV = os.path.join(DATA_DIR, 'box_image_id_lookup.csv')
     # LOGGING_MANIFEST_PATH = os.path.join(DATA_DIR, 's3_upload_results.csv')
 
-    logging_keys = [
-        'Scope', 'Metadata edits', 'box_foldername', 'photo_file_name', 'title', 'additional_notes', 'date_taken', 'collection', 'park_name', 'id', 'original_file_name', 'ext', 'longitude', 'latitude', 'location_source', 'type', 'alpha_code', 'box_id', 'box_filename',
-        'thumb_url', 'main_image_url', 's3_error'
-    ]
+    # logging_keys = [
+    #     'Scope', 'Metadata edits', 'box_foldername', 'photo_file_name', 'title', 'additional_notes', 'date_taken', 'collection', 'park_name', 'id', 'original_file_name', 'ext', 'longitude', 'latitude', 'location_source', 'type', 'alpha_code', 'box_id',
+    #     'thumb_url', 'main_image_url', 's3_error'
+    # ]
 
     raw_storage_class = 'GLACIER_IR'
     
@@ -96,12 +96,23 @@ class Command(BaseCommand):
                 date_taken = datetime.datetime.strptime(row['date_taken'], "%m/%d/%Y").date()
             except ValueError:
                 date_taken = None
+
+            # photo_type - NOTE NUMBERS ARE NOT IN ORDER OF QUESTIONS ON SITE
+            if row['photo_type'] in [2.0, '2.0']:
+                photo_type = 'ART'
+            elif row['photo_type'] in [3.0, '3.0']:
+                photo_type = 'OTH'
+            elif row['photo_type'] in [4.0, '4.0']:
+                photo_type = 'ALT'
+            else:
+                photo_type = 'NML'
                 
             photo = Photo(
                 park_id=park_id,
                 status='RD',  # 'Ready for Review'
+                photo_type=photo_type,
                 box_id=row['box_id'],
-                box_filename=row['photo_file_name_final'],
+                # box_filename=row['photo_file_name_final'],
                 photo_file_name=row['photo_file_name_final'],
                 original_file_name=row['photo_file_name_orig'],
                 date_taken=date_taken,
@@ -138,7 +149,8 @@ class Command(BaseCommand):
             'Q10': 'title',
             'Q7': 'additional_notes',
             'Q2.1': 'date_taken',
-            'Q2_1': 'date_taken_2'
+            'Q2_1': 'date_taken_2',
+            'Q21': 'photo_type',
         })[[
             'dt_form_submitted',
             'upload_complete',
@@ -149,6 +161,7 @@ class Command(BaseCommand):
             'additional_notes',
             'date_taken',
             'date_taken_2',
+            'photo_type',
         ]]
 
         print(form_response_df)
@@ -164,6 +177,10 @@ class Command(BaseCommand):
         # Fix Box filename because a prefix has been pre-pended at upload
         form_response_df['photo_file_name_final'] = form_response_df.apply(lambda row: self.build_real_box_filename(row), axis=1)
 
+        # # Convert numerical photo_type variable
+        # form_response_df['photo_type'] = form_response_df['photo_type_numeric'].apply(lambda x: parse_photo_type(x))
+        # form_response_df.drop(columns=['photo_type_numeric'], inplace=True)
+
         print(form_response_df)
 
         print(f"Found {form_response_df.shape[0]} valid Qualtrics rows...")
@@ -172,7 +189,7 @@ class Command(BaseCommand):
         form_response_df = self.merge_with_parks_list(form_response_df)
 
         # Dedupe from what is in DB/gsheets import
-        existing_photo_ids = pd.DataFrame(list(set(Photo.objects.all().values_list('box_filename', flat=True))), columns=['existing_box_filename'])
+        existing_photo_ids = pd.DataFrame(list(set(Photo.objects.all().values_list('photo_file_name', flat=True))), columns=['existing_box_filename'])
         print(f"Currently {existing_photo_ids.shape[0]} images in database.")
 
         form_response_df = form_response_df.merge(
@@ -194,7 +211,7 @@ class Command(BaseCommand):
                 image_id_list,
                 how="left",
                 left_on="photo_file_name_final",
-                right_on="box_filename"
+                right_on="photo_file_name"
             )
             form_response_df['title'] = form_response_df['title'].fillna(value='')
             form_response_df['additional_notes'] = form_response_df['additional_notes'].fillna(value='')

@@ -104,7 +104,7 @@ def build_folder_file_list(client, box_folder_id):
     file_list = []
     items = box_folder.get_items()
     for item in items:
-        file_list.append({'box_id': item.id, 'box_filename': item.name})
+        file_list.append({'box_id': item.id, 'photo_file_name': item.name})
         # print('{0} {1} is named "{2}"'.format(item.type.capitalize(), item.id, item.name))
 
     return file_list

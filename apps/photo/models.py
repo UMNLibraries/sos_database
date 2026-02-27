@@ -39,14 +39,40 @@ LOCATION_TYPE_CHOICES = (
 )
 
 
+'''
+Normal - This photo shows a sign in an NPS site. I do not think it has been changed in response to recent executive orders
+Altered - This photo shows a site of removal/censorship. It shows a sign that has been altered in response to recent executive orders OR it shows an empty space that used to have a sign.
+Artistic - This photo shows a creative response to a sign change/removal. For example in Philadelphia, protestors taped posters reading "history is real" on the wall where an exhibit on slavery was removed.
+Other - Other
+'''
+PHOTO_TYPE_CHOICES = (
+    ('NML', 'Normal'),
+    ('ALT', 'Altered'),
+    ('ART', 'Artistic'),
+    ('OTH', 'Other'),
+)
+
+
+class Collection(models.Model):
+    name = models.CharField(max_length=100, db_index=True)
+    bool_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Photo(models.Model):
     # associations and ids
     park = models.ForeignKey(Park, null=True, on_delete=models.SET_NULL)
     sign = models.ForeignKey(Sign, null=True, blank=True, on_delete=models.SET_NULL)
     scope = models.CharField(max_length=4, blank=True, db_index=True, choices=SCOPE_CHOICES)
     status = models.CharField(max_length=4, db_index=True, choices=STATUS_CHOICES)
+    photo_type = models.CharField(max_length=4, db_index=True, choices=PHOTO_TYPE_CHOICES, default="NML")
     box_id = models.CharField(max_length=255, db_index=True)
-    box_filename = models.CharField(max_length=255)
+    # box_filename = models.CharField(max_length=255)
     # box_foldername = models.CharField(max_length=255)
     photo_file_name = models.CharField(max_length=255)
     original_file_name = models.CharField(max_length=255)
@@ -56,6 +82,7 @@ class Photo(models.Model):
     dt_imported = models.DateTimeField(null=True, auto_now_add=True)
 
     # collection something something? probably separate m2m
+    collections = models.ManyToManyField(Collection)
 
     # descriptions
     title = models.TextField(null=True, blank=True, verbose_name="Title (original)")

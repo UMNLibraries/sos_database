@@ -64,6 +64,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
         ('park', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK)
         'scope',
         'status',
+        'photo_type',
     )
 
     autocomplete_fields = ['park', 'sign']
@@ -84,6 +85,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
                 'title',
                 'get_additional_notes',
                 'additional_notes',
+                'photo_type',
                 'scope',
                 'status',
                 'location_type',
@@ -97,14 +99,14 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
         ('Additional metadata', {
             'fields': (
                 'box_id',
-                'box_filename',
+                'photo_file_name',
                 'original_file_name',
                 'main_image_url',
             )
         }),
    )
 
-    readonly_fields = ['bool_manual_correction', 'box_id', 'box_filename', 'dt_form', 'get_title', 'get_additional_notes', 'get_location_type', 'image_preview', 'photo_file_name', 'original_file_name', 'date_taken', 'title', 'additional_notes']
+    readonly_fields = ['bool_manual_correction', 'box_id', 'dt_form', 'get_title', 'get_additional_notes', 'get_location_type', 'image_preview', 'photo_file_name', 'original_file_name', 'date_taken', 'title', 'additional_notes']
 
     gis_widget_kwargs = {
         'attrs': {

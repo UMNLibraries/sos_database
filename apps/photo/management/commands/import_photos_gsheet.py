@@ -26,7 +26,7 @@ class Command(BaseCommand):
     LOGGING_MANIFEST_PATH = os.path.join(DATA_DIR, 's3_upload_results.csv')
 
     logging_keys = [
-        'Scope', 'Metadata edits', 'box_foldername', 'photo_file_name', 'title', 'additional_notes', 'date_taken', 'collection', 'park_name', 'id', 'original_file_name', 'ext', 'longitude', 'latitude', 'location_source', 'type', 'alpha_code', 'box_id', 'box_filename',
+        'Scope', 'Metadata edits', 'box_foldername', 'photo_file_name', 'title', 'additional_notes', 'date_taken', 'collection', 'park_name', 'id', 'original_file_name', 'ext', 'longitude', 'latitude', 'location_source', 'type', 'alpha_code', 'box_id',
         'thumb_url', 'main_image_url', 's3_error'
     ]
 
@@ -92,6 +92,9 @@ class Command(BaseCommand):
         # Join to box image_ids
         site_df = pd.read_csv(self.BOX_IMAGE_IDS_CSV, dtype={'box_id': str})
 
+        # print(image_df.columns)
+        # print(site_df.columns)
+
         image_df = image_df.merge(
             site_df,
             how="left",
@@ -142,8 +145,9 @@ class Command(BaseCommand):
                 park_id=park_id,
                 scope=scope,
                 status=status,
+                photo_type='NML',
                 box_id=row['box_id'],
-                box_filename=row['box_filename'],
+                # box_filename=row['box_filename'],
                 # box_foldername = models.CharField(max_length=255)
                 photo_file_name=row['photo_file_name'],
                 original_file_name=row['original_file_name'],
