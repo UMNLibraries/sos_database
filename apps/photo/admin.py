@@ -86,12 +86,12 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
                 'additional_notes',
                 'scope',
                 'status',
+                'location_type',
                 'bool_manual_correction',
                 'location_final',
                 'location_embedded',
                 # 'location_final',
                 'get_location_type',
-                'location_type',
             )
         }),
         ('Additional metadata', {
@@ -104,7 +104,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
         }),
    )
 
-    readonly_fields = ['bool_manual_correction', 'box_id', 'box_filename', 'dt_form', 'get_title', 'get_additional_notes', 'get_location_type', 'image_preview', 'photo_file_name', 'original_file_name', 'date_taken', 'location_type', 'title', 'additional_notes']
+    readonly_fields = ['bool_manual_correction', 'box_id', 'box_filename', 'dt_form', 'get_title', 'get_additional_notes', 'get_location_type', 'image_preview', 'photo_file_name', 'original_file_name', 'date_taken', 'title', 'additional_notes']
 
     gis_widget_kwargs = {
         'attrs': {

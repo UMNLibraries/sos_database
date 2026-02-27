@@ -52,7 +52,7 @@ class Command(BaseCommand):
         parser.add_argument('-y', '--dry', action='store_true',
                         help='Just tell me how many keys are left to upload and exit.')
         
-        parser.add_argument('-l', '--no-location', action='store_false',
+        parser.add_argument('-x', '--no-location', action='store_false',
                         help='Do NOT try to extract location info from Box file while importing.')
         
         parser.add_argument('-p', '--pool', type=int, default=8,
@@ -169,7 +169,7 @@ class Command(BaseCommand):
         )
 
         for p in photos_to_update:
-            matching_row = next((p for p in self.embedded_locations if p['photo_file_name'] == p.photo_file_name), None)
+            matching_row = next((l for l in self.embedded_locations if l['photo_file_name'] == p.photo_file_name), None)
             if matching_row:
                 p.location_embedded = Point(float(matching_row['longitude']), float(matching_row['latitude']))
                 update_objs.append(p)
@@ -182,12 +182,12 @@ class Command(BaseCommand):
         self.upload_batch_size = kwargs['limit']
         self.min_thread_time = kwargs['mintime']
         self.num_threads = kwargs['pool']
-        self.bool_extract_locations = kwargs['no-location']
+        self.bool_extract_locations = kwargs['no_location']
     
         # Check which images already uploaded
         current_thumbs = get_current_s3_matches(self.s3, self.bucket_name, 'media/thumbs')
         current_main_images = get_current_s3_matches(self.s3, self.bucket_name, 'media/images')
-        print(current_main_images)
+        # print(current_main_images)
         print(f"Found {len(current_main_images)} main images and {len(current_thumbs)} thumbnails already on S3.")
 
         image_df = pd.DataFrame(Photo.objects.all().values(

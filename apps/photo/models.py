@@ -74,7 +74,7 @@ class Photo(models.Model):
     # location = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (original)")
     location_final = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (current)")
     # location_source
-    location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True, verbose_name="Location type (original)")
+    location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True, verbose_name="Location type")
     location_type_final = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, blank=True)
 
     bool_manual_correction = models.BooleanField(default=False)
