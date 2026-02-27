@@ -106,6 +106,7 @@ class Photo(models.Model):
         else:
             self.location_final = self.park.centerpoint
             self.location_type_final = 'PK'
+            self.location_type = 'PK'
     
     def get_final_values(self):
         self.bool_manual_correction = False
@@ -127,6 +128,7 @@ class Photo(models.Model):
             if self.manualcorrection_set.first().location:
                 self.location_final = self.manualcorrection_set.first().location
                 self.location_type_final = 'SOS'
+                self.location_type = 'SOS'
                 self.bool_manual_correction = True
             else:
                 self.check_embedded_location()

@@ -3,6 +3,7 @@ import os
 # from tempfile import NamedTemporaryFile
 
 from django.test import TestCase
+from django.contrib.gis.geos import Point
 # from django.core.management import call_command
 
 from PIL import Image
@@ -187,3 +188,42 @@ class ManualCorrectionTestCase(TestCase):
         p_1.save()
         self.assertEqual(p_1.location_final, p_1.park.centerpoint)
         self.assertEqual(p_1.location_type_final, 'PK')
+
+    def test_new_manual_correction_location_save(self):
+        '''Saving a new manual correction with a location should set final location
+        to the manual correction location and set location_type to SOS'''
+
+        p_3 = Photo.objects.get(pk=3)
+        p_3.save()
+
+        self.assertEqual(p_3.title_final, 'Initial title')
+        self.assertEqual(p_3.location_final, p_3.park.centerpoint)
+        self.assertEqual(p_3.location_type_final, 'PK')
+        self.assertEqual(p_3.location_type, 'PK')
+
+        new_mc = ManualCorrection(
+            photo=p_3,
+            # photo_file_name = models.CharField(max_length=255, null=True)
+            title='test title 3',
+            additional_notes='test description 3',
+            location=Point(-94.2,46.2),
+            comments='test comment 3'
+        )
+        new_mc.save()
+
+        # p_3 = Photo.objects.get(pk=3)
+        self.assertEqual(p_3.title_final, new_mc.title)
+        self.assertEqual(p_3.location_final, new_mc.location)
+        self.assertEqual(p_3.location_type_final, 'SOS')
+        self.assertEqual(p_3.location_type, 'SOS')
+
+        new_mc.delete()
+
+        # p_3 = Photo.objects.get(pk=3)
+        self.assertEqual(p_3.title_final, 'Initial title')
+        self.assertEqual(p_3.location_final, p_3.park.centerpoint)
+        self.assertEqual(p_3.location_type_final, 'PK')
+        self.assertEqual(p_3.location_type, 'PK')
+
+
+
