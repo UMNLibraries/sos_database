@@ -4,7 +4,7 @@ from django.contrib.gis.db import models
 from django.forms import TextInput, Textarea
 from django.contrib.gis.forms.widgets import OSMWidget
 
-from apps.photo.models import Photo,  Sign, ManualCorrection, RevisedPhoto
+from apps.photo.models import Photo, Sign, Collection, ManualCorrection, RevisedPhoto
 from apps.park.models import State, Park, SiteType
 
 
@@ -37,6 +37,10 @@ class SignAdmin(admin.ModelAdmin):
     search_fields = ['title']
 
 
+class CollectionAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
 class ManualCorrectionInline(admin.StackedInline):
     model = ManualCorrection
     extra = 0
@@ -57,7 +61,6 @@ class ManualCorrectionInline(admin.StackedInline):
 class RevisedPhotoInline(admin.StackedInline):
     model = RevisedPhoto
     extra = 0
-    # readonly_fields = []
     exclude = ['thumb_url', 'photo_file_name']
        
 
@@ -74,7 +77,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
         'photo_type',
     )
 
-    autocomplete_fields = ['park', 'sign']
+    autocomplete_fields = ['park', 'sign', 'collections']
 
     inlines = [
         ManualCorrectionInline,
@@ -87,6 +90,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
                 'image_preview',
                 'park',
                 'sign',
+                'collections',
                 'date_taken',
                 'dt_form',
                 'get_title',
@@ -114,7 +118,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
         }),
    )
 
-    readonly_fields = ['bool_manual_correction', 'box_id', 'dt_form', 'get_title', 'get_additional_notes', 'get_location_type', 'image_preview', 'photo_file_name', 'original_file_name', 'date_taken', 'title', 'additional_notes']
+    readonly_fields = ['bool_manual_correction', 'box_id', 'dt_form', 'get_title', 'get_additional_notes', 'get_location_type', 'image_preview', 'photo_file_name', 'original_file_name', 'date_taken', 'title', 'additional_notes', 'main_image_url']
 
     gis_widget_kwargs = {
         'attrs': {
@@ -163,4 +167,5 @@ admin.site.register(State, StateAdmin)
 admin.site.register(SiteType, SiteTypeAdmin)
 admin.site.register(Park, ParkAdmin)
 admin.site.register(Sign, SignAdmin)
+admin.site.register(Collection, CollectionAdmin)
 admin.site.register(Photo, PhotoAdmin)
