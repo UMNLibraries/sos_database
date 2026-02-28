@@ -29,7 +29,9 @@ def build_public_manifest():
         'title_final',
         'date_taken',
         'main_image_url',
+        'revisedphoto__main_image_url',
         'thumb_url',
+        'revisedphoto__thumb_url',
         'longitude',
         'latitude',
         'location_type_final',
@@ -57,6 +59,10 @@ def build_public_manifest():
 
     # Sort by site_code
     public_df = public_df.sort_values('site_code')
+
+    # Use corrected photo/thumb if revised one present
+    public_df['main_image_url'] = public_df['revisedphoto__main_image_url'].combine_first(public_df['main_image_url'])
+    public_df['thumb_url'] = public_df['revisedphoto__thumb_url'].combine_first(public_df['thumb_url'])
 
     print(public_df[['main_image_url']].drop_duplicates())
     print(public_df)

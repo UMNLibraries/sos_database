@@ -4,7 +4,7 @@ from django.contrib.gis.db import models
 from django.forms import TextInput, Textarea
 from django.contrib.gis.forms.widgets import OSMWidget
 
-from apps.photo.models import Photo,  Sign, ManualCorrection
+from apps.photo.models import Photo,  Sign, ManualCorrection, RevisedPhoto
 from apps.park.models import State, Park, SiteType
 
 
@@ -52,6 +52,13 @@ class ManualCorrectionInline(admin.StackedInline):
                     # 'modifiable': False
                 })
         return super().formfield_for_dbfield(db_field,**kwargs)
+    
+
+class RevisedPhotoInline(admin.StackedInline):
+    model = RevisedPhoto
+    extra = 0
+    # readonly_fields = []
+    exclude = ['thumb_url', 'photo_file_name']
        
 
 class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
@@ -70,7 +77,8 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
     autocomplete_fields = ['park', 'sign']
 
     inlines = [
-        ManualCorrectionInline
+        ManualCorrectionInline,
+        RevisedPhotoInline
     ]
 
     fieldsets = (
