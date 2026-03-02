@@ -19,6 +19,11 @@ class Sign(models.Model):
     title = models.TextField()
     
     # How to handle location?
+    class Meta:
+        ordering = ["title"]
+
+    def __str__(self):
+        return f"{self.park.site_code}: {self.title}"
 
 
 SCOPE_CHOICES = (
