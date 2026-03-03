@@ -1,7 +1,7 @@
 from django.contrib.gis import admin
-from dalf.admin import DALFModelAdmin, DALFRelatedOnlyField, DALFRelatedFieldAjax
+from dalf.admin import DALFModelAdmin, DALFRelatedFieldAjax
 from django.contrib.gis.db import models
-from django.forms import TextInput, Textarea
+from django.forms import Textarea
 from django.contrib.gis.forms.widgets import OSMWidget
 
 from apps.photo.models import Photo, Sign, Collection, ManualCorrection, RevisedPhoto
@@ -65,6 +65,7 @@ class RevisedPhotoInline(admin.StackedInline):
        
 
 class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
+
     # TODO: Change these to "_final" once those are populated
     search_fields = ['title', 'title_final', 'additional_notes', 'additional_notes_final', 'photo_file_name']
 
@@ -132,6 +133,12 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': Textarea(attrs={'rows': 2, 'cols': 80})}, # Override all TextFields
     }
+
+    def get_readonly_fields(self, request, obj=None):
+        '''Don't show map widget if there is no embedded location'''
+        if obj and obj.location_embedded is None: 
+            return self.readonly_fields + ['location_embedded']
+        return self.readonly_fields
 
     def get_title(self, obj):
         if obj.title_final != '':
