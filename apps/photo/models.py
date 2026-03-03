@@ -92,7 +92,7 @@ class Photo(models.Model):
     dt_imported = models.DateTimeField(null=True, auto_now_add=True)
 
     # collection something something? probably separate m2m
-    collections = models.ManyToManyField(Collection, null=True, blank=True)
+    collections = models.ManyToManyField(Collection, blank=True)
 
     # descriptions
     title = models.TextField(null=True, blank=True, verbose_name="Title (original)")
