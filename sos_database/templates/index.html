@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block page_title %}<title>SOS management database</title>{% endblock %}
+
+{% block main_content %}
+<h1>SOS management database</h1>
+
+<h3>Current photo status</h3>
+<ul>
+{% for status in status_counts %}
+    <li><a href="/admin/photo/photo/?status__exact={{status.status_code}}">{{status.status_long}}</a>: {{status.status_count|intcomma}}</li>
+
+{% endfor %}
+</ul>
+
+{% endblock %}
+

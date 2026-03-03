@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block page_title %}<title>Page Title</title>{% endblock %}
+
+    <link href="https://fonts.googleapis.com/css?family=Lato%3Ai%2Cbi%2C700%2C400%2C100&amp;display=swap" rel="stylesheet" nonce="">
+
+    <style>
+        body {
+            background-color: #e9eadc;
+            color: rgb(46, 94, 27);
+            font-family: Lato, Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+        }
+
+        #body-container {
+            display: flex;
+        }
+
+        #main-menu {
+            max-width: 400px;
+            padding: 3em 2em;
+            margin-right: 2em;
+            background-color: rgb(29, 61, 16);
+            color: #FFF;
+        }
+
+        #main-menu a {
+            color: #FFF;
+        }
+
+        #footer {
+            text-align: center;
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="body-container">
+        <nav id="main-menu">
+            <ul>
+                <li><a href="/admin/photo/photo">Photos list</a></li>
+                <li><a href="/admin">Admin main</a></li>
+                <li><a href="https://sos-sandbox.s3.us-east-2.amazonaws.com/sos-public-viewer/viewer.html">Public image viewer</a></li>
+            </ul>
+        </nav>
+        <section id="main-content">
+            {% block main_content %}{% endblock %}
+        </section>
+    </div>
+    <section id="footer">Copyright 2026, Regents of the University of Minnesota</section>
+    
+    
+
+</body>
+</html>
+
