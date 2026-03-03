@@ -12,7 +12,6 @@ from django.core.management.base import BaseCommand
 
 from apps.park.models import Park
 from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
-from apps.photo.utils.gsheets import gsheets_login
 from apps.photo.utils.box import get_box_client, load_box_image, get_box_file_as_tempfile
 from apps.photo.utils.image_processing import remove_exif, get_gps_info, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
 
@@ -33,7 +32,6 @@ class Command(BaseCommand):
     raw_storage_class = 'GLACIER_IR'
     
     box = get_box_client()
-    gsheets = gsheets_login()
     session = boto3.Session(profile_name='sos')
     s3 = session.client('s3', region_name='us-east-2')
     upload_batch_size = -1
