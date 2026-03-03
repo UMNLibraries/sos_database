@@ -1,6 +1,7 @@
 from django.contrib.gis import admin
 from dalf.admin import DALFModelAdmin, DALFRelatedFieldAjax
 from django.contrib.gis.db import models
+from django.db.models import F
 from django.forms import Textarea
 from django.contrib.gis.forms.widgets import OSMWidget
 
@@ -66,10 +67,15 @@ class RevisedPhotoInline(admin.StackedInline):
 
 class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Sort by 'nullable_field' descending, with nulls first
+        return qs.order_by(F('dt_form').desc(nulls_last=True))
+
     # TODO: Change these to "_final" once those are populated
     search_fields = ['title', 'title_final', 'additional_notes', 'additional_notes_final', 'photo_file_name']
 
-    list_display = ['__str__', 'title_final', 'scope', 'status', 'date_taken']
+    list_display = ['__str__', 'title_final', 'scope', 'status', 'dt_form', 'date_taken']
 
     list_filter = (
         ('park', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK)
