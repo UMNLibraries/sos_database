@@ -47,7 +47,7 @@ class Command(BaseCommand):
             how="left",
             on="park_slug"
         )
-        print(form_response_df)
+        # print(form_response_df)
 
         # Missing site code values?
         missing_site_codes = form_response_df[form_response_df['site_code'].isna()]
@@ -164,7 +164,7 @@ class Command(BaseCommand):
             'photo_type',
         ]]
 
-        print(form_response_df)
+        # print(form_response_df)
 
         # Filter out unfinished uploads
         form_response_df = form_response_df[(form_response_df['upload_complete'] == 1) & (~form_response_df['photo_file_name_orig'].isna())].drop(columns=['upload_complete'])
@@ -181,7 +181,7 @@ class Command(BaseCommand):
         # form_response_df['photo_type'] = form_response_df['photo_type_numeric'].apply(lambda x: parse_photo_type(x))
         # form_response_df.drop(columns=['photo_type_numeric'], inplace=True)
 
-        print(form_response_df)
+        # print(form_response_df)
 
         print(f"Found {form_response_df.shape[0]} valid Qualtrics rows...")
 
@@ -206,7 +206,7 @@ class Command(BaseCommand):
             # Get numerical Box IDs from Box
             image_id_list = self.get_box_image_ids_bulk()
 
-            print(image_id_list)
+            # print(image_id_list)
             form_response_df = form_response_df.merge(
                 image_id_list,
                 how="left",
