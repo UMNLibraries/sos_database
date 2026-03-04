@@ -57,23 +57,23 @@ class Command(BaseCommand):
 
         return form_response_df
     
-    def get_box_image_ids_by_site(self, site_code_list):
-        # Only run this cell if you need to re-generate image IDs
-        image_id_list = []
-        # box = get_box_client()
-        for park in Park.objects.exclude(box_folder_id='').filter(site_code__in=site_code_list):
+    # def get_box_image_ids_by_site(self, site_code_list):
+    #     # Only run this cell if you need to re-generate image IDs
+    #     image_id_list = []
+    #     # box = get_box_client()
+    #     for park in Park.objects.exclude(box_folder_id='').filter(site_code__in=site_code_list):
 
-            print(f"Getting image IDs for {park.site_code} ({park.box_folder_id})")
+    #         print(f"Getting image IDs for {park.site_code} ({park.box_folder_id})")
 
-            image_id_list += build_folder_file_list(self.box, park.box_folder_id)
+    #         image_id_list += build_folder_file_list(self.box, park.box_folder_id)
 
-        site_df = pd.DataFrame(image_id_list)
-        # print(image_id_list)
+    #     site_df = pd.DataFrame(image_id_list)
+    #     # print(image_id_list)
 
-        # os.makedirs(self.DATA_DIR, exist_ok=True)
-        # site_df.to_csv(self.BOX_IMAGE_IDS_CSV, index=False)
+    #     # os.makedirs(self.DATA_DIR, exist_ok=True)
+    #     # site_df.to_csv(self.BOX_IMAGE_IDS_CSV, index=False)
 
-        return site_df
+    #     return site_df
     
     def get_box_image_ids_bulk(self):
         '''Photos that did not go through stage 1 manual processing are in one big folder, not listed by site'''
@@ -206,6 +206,9 @@ class Command(BaseCommand):
             # Get numerical Box IDs from Box
             image_id_list = self.get_box_image_ids_bulk()
 
+            print('all images in folder next...')
+            print(image_id_list)
+
             # print(image_id_list)
             form_response_df = form_response_df.merge(
                 image_id_list,
@@ -216,6 +219,8 @@ class Command(BaseCommand):
             form_response_df['title'] = form_response_df['title'].fillna(value='')
             form_response_df['additional_notes'] = form_response_df['additional_notes'].fillna(value='')
 
-            form_response_df.to_csv(os.path.join(self.DATA_DIR, 'merge_test.csv'), index=False)
+            print(form_response_df)
+
+            # form_response_df.to_csv(os.path.join(self.DATA_DIR, 'merge_test.csv'), index=False)
 
             self.import_photo_objects(form_response_df)
