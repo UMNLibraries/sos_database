@@ -114,6 +114,7 @@ if os.environ.get("GITHUB_WORKFLOW"):
     AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
     AWS_S3_REGION_NAME = os.environ['AWS_S3_REGION_NAME']
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 
 
 # Password validation
