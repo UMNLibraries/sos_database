@@ -38,6 +38,7 @@ class Command(BaseCommand):
         session = boto3.Session(profile_name=settings.AWS_PROFILE_NAME)
     else:
         print('Using direct settings...')
+        print(settings.AWS_ACCESS_KEY_ID, settings.AWS_S3_REGION_NAME)
         session = boto3.Session(
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
