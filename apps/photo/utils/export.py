@@ -1,17 +1,20 @@
 import os
 import datetime
 import pandas as pd
-from django.db.models import Func, FloatField
+import geopandas as gpd
+from django.db.models import Func, FloatField, CharField, Count
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.conf import settings
 from django.apps import apps
 
 from apps.photo.models import Photo
+from apps.park.models import Park
+
 
 def build_public_manifest():
     '''Create public manifest CSV matching legacy format using Django model'''
 
-    PUBLIC_MANIFEST_PATH = os.path.join(settings.BASE_DIR, 'data', 'public_manifest_main_TEST.csv')
+    # PUBLIC_MANIFEST_PATH = os.path.join(settings.BASE_DIR, 'data', 'public_manifest_main_TEST.csv')
 
     photos = Photo.objects.filter(
         scope='IN',
@@ -95,6 +98,106 @@ def build_public_manifest():
     # from apps.photo.utils.export import build_public_manifest
     # build_public_manifest()
 
+def build_map_gdf():
+
+    # Site name
+    # Latitude (park centerpoint)
+    # Longitude (park centerpoint)
+    # Website
+    # Total number of photos submitted for the site
+    # Number of photos in "Live" status
+    # Number of photos in "Ready for Review" or "Approved, Not Yet Live" status
+
+    # Currently not including...
+    # ('AT', 'Needs Attention'),
+    # ('SV', 'Save for Later'),
+
+    parks = Park.objects.all().annotate(
+        longitude=Func('centerpoint', function='ST_X', output_field=FloatField()),
+        latitude=Func('centerpoint', function='ST_Y', output_field=FloatField()),
+        center_wkt=Func('centerpoint', function='ST_AsText', output_field=CharField()),
+    ).values(
+        "name",
+        "site_code",
+        "website",
+        "longitude",
+        "latitude",
+        "center_wkt"
+    )
+    parks_df = pd.DataFrame(parks)
+
+    # TODO: How to handle scope?
+    photos = Photo.objects.filter(
+        status__in=['AT', 'RD', 'AP', 'LV']
+    ).exclude(
+        scope__in=['OUT', 'DUP']
+    ).values(
+        "pk",
+        "status",
+        "park__site_code",
+    )
+
+    print(photos)
+
+    df = pd.DataFrame(photos)
+    df.rename(columns={
+        'park__site_code': 'site_code',
+    }, inplace=True)
+
+    counts_df = df.groupby([
+        'site_code',
+        'status',
+     ]).agg('count').reset_index()
+    counts_df.rename(columns={
+        'pk': 'photo_count'
+    }, inplace=True)
+
+    approved_counts_df = counts_df[counts_df['status'].isin(['LV', 'AP'])].groupby([
+        'site_code',
+    ]).agg('sum').reset_index()
+    approved_counts_df.rename(columns={
+        'photo_count': 'approved_photos'
+    }, inplace=True)
+
+    print(approved_counts_df)
+
+    pending_counts_df = counts_df[counts_df['status'].isin(['AT', 'RD'])].groupby([
+        'site_code',
+    ]).agg('sum').reset_index()
+    pending_counts_df.rename(columns={
+        'photo_count': 'pending_photos'
+    }, inplace=True)
+
+    print(pending_counts_df)
+
+    parks_df = parks_df.merge(
+        approved_counts_df.drop(columns=['status']),
+        how="left",
+        on="site_code"
+    ).merge(
+        pending_counts_df.drop(columns=['status']),
+        how="left",
+        on="site_code"
+    )
+
+    parks_df.fillna(value=0, inplace=True)
+    parks_df['approved_photos'] = parks_df['approved_photos'].astype(int)
+    parks_df['pending_photos'] = parks_df['pending_photos'].astype(int)
+    parks_df['total_photos'] = parks_df['pending_photos'] + parks_df['approved_photos']
+
+    gs = gpd.GeoSeries.from_wkt(parks_df['center_wkt'])
+    gdf = gpd.GeoDataFrame(parks_df, geometry=gs, crs="EPSG:4326")
+
+    gdf.drop(columns=['center_wkt'], inplace=True)
+
+    gdf['sos_live_link'] = settings.SOS_VIEWER_LIVE_LINK + '?site=' + gdf['site_code']
+    print(gdf)
+    print(gdf.columns)
+
+    # from apps.photo.utils.export import build_map_gdf
+    # build_map_gdf()
+    return gdf
+    
 
 def dump_cx_model_backups(app_name, model_name):
     model = apps.get_model(app_name, model_name)
