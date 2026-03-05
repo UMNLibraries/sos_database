@@ -1,4 +1,4 @@
-name: Run Django Command
+name: Get Form Updates
 
 on:
   # Define when the workflow should run (e.g., manual trigger)
