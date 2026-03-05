@@ -98,6 +98,7 @@ class Command(BaseCommand):
     
     def upload_missing_files(self, upload_list):
         
+        os.makedirs(self.DATA_DIR, exist_ok=True)
         with open(self.LOGGING_MANIFEST_PATH, 'w') as done_manifest:
             done_manifest.write(','.join(self.logging_keys) + "\n")
 
