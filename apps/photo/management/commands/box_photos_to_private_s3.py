@@ -37,8 +37,8 @@ class Command(BaseCommand):
         session = boto3.Session(profile_name=settings.AWS_PROFILE_NAME)
     else:
         session = boto3.Session(
-            aws_access_key_id=settings.AWS_ACCESS_KEY,
-            aws_secret_access_key=settings.AWS_SECRET_KEY,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             # region_name=settings.REGION
         )
     s3 = session.client('s3', region_name='us-east-2')

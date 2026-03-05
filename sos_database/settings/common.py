@@ -110,6 +110,9 @@ if os.environ.get("GITHUB_WORKFLOW"):
     BOX_JWT = json.loads(os.environ['BOX_JWT'])
     BOX_FORM_RESPONSES_FILE_ID = os.environ['BOX_FORM_RESPONSES_FILE_ID']
     BOX_FORM_IMAGES_FOLDER_ID = os.environ['BOX_FORM_IMAGES_FOLDER_ID']
+    AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+    AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+    AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
 
 
 # Password validation
