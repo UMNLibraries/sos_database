@@ -32,7 +32,15 @@ class Command(BaseCommand):
     raw_storage_class = 'GLACIER_IR'
     
     box = get_box_client()
-    session = boto3.Session(profile_name='sos')
+
+    if 'AWS_PROFILE_NAME' in settings:
+        session = boto3.Session(profile_name=settings.AWS_PROFILE_NAME)
+    else:
+        session = boto3.Session(
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_KEY,
+            # region_name=settings.REGION
+        )
     s3 = session.client('s3', region_name='us-east-2')
     upload_batch_size = -1
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
