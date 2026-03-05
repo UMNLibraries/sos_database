@@ -106,7 +106,8 @@ if os.environ.get("GITHUB_WORKFLOW"):
         }
     }
 
-    BOX_JWT = os.environ['BOX_JWT']
+    import json
+    BOX_JWT = json.loads(os.environ['BOX_JWT'])
     BOX_FORM_RESPONSES_FILE_ID = os.environ['BOX_FORM_RESPONSES_FILE_ID']
     BOX_FORM_IMAGES_FOLDER_ID = os.environ['BOX_FORM_IMAGES_FOLDER_ID']
 
