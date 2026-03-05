@@ -33,7 +33,7 @@ class Command(BaseCommand):
     
     box = get_box_client()
 
-    if 'AWS_PROFILE_NAME' in settings:
+    if hasattr(settings, 'AWS_PROFILE_NAME'):
         session = boto3.Session(profile_name=settings.AWS_PROFILE_NAME)
     else:
         session = boto3.Session(
