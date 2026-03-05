@@ -13,7 +13,9 @@ from io import BytesIO
 def remove_exif(im):
     '''Input: Open PIL image. Output: Open PIL image with no exif'''
     # Reset orientation if needed before removing exif
+    print('pre transpose')
     im = ImageOps.exif_transpose(im)
+    print('post transpose')
 
     # Copy image data without moving metadata
     data = list(im.getdata())
@@ -22,14 +24,18 @@ def remove_exif(im):
 
     # Can we close original im at this point?
     im.close()
+    print('post close')
 
     im_flat = Image.new(orig_mode, orig_size)
+    print('post new image')
     try:
         im_flat.putdata(data)
+        print('post put')
     except TypeError:
         # When the above putdata() was getting run on jpegs before sometimes (often) it thought there was more than one page, might have been some kind of extra channel. This try block is probably unnecessary now.
         return None
     im_flat = im_flat.convert('RGB')
+    print('post convert')
     return im_flat
 
 
