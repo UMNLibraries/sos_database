@@ -17,7 +17,13 @@ def remove_exif(im):
 
     # Copy image data without moving metadata
     data = list(im.getdata())
-    im_flat = Image.new(im.mode, im.size)
+    orig_mode = im.mode
+    orig_size = im.size
+
+    # Can we close original im at this point?
+    im.close()
+
+    im_flat = Image.new(orig_mode, orig_size)
     try:
         im_flat.putdata(data)
     except TypeError:
