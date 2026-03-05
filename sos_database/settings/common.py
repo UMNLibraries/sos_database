@@ -106,6 +106,10 @@ if os.environ.get("GITHUB_WORKFLOW"):
         }
     }
 
+    BOX_JWT = os.environ['BOX_JWT']
+    BOX_FORM_RESPONSES_FILE_ID = os.environ['BOX_FORM_RESPONSES_FILE_ID']
+    BOX_FORM_IMAGES_FOLDER_ID = os.environ['BOX_FORM_IMAGES_FOLDER_ID']
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

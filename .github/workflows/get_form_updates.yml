@@ -49,7 +49,6 @@ jobs:
       env:
         BOX_KEY: ${{ secrets.BOX_KEY }}
       run: |
-        pwd
         echo "$BOX_KEY" > sos_database/settings/box_cert.pem
       shell: bash
 
