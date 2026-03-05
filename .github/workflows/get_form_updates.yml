@@ -44,7 +44,7 @@ jobs:
         BOX_KEY: ${{ secrets.BOX_KEY }}
       run: |
         pwd
-        echo "$BOX_KEY" > home/runner/sos_database/sos_database/settings/box_cert.pem
+        echo "$BOX_KEY" > sos_database/settings/box_cert.pem
       shell: bash
 
     # - name: Configure Django settings (Optional)
