@@ -53,8 +53,8 @@ class Command(BaseCommand):
         parser.add_argument('-x', '--no-location', action='store_false',
                         help='Do NOT try to extract location info from Box file while importing.')
         
-        parser.add_argument('-p', '--pool', type=int, default=2,
-                            help='How many threads to use? (Default is 2)')
+        parser.add_argument('-p', '--pool', type=int, default=8,
+                            help='How many threads to use? (Default is 8)')
 
         parser.add_argument('-m', '--mintime', type=float, default=0,
                             help='What is the minimum time to execute each thread (rate limit) in seconds (Default is 0)')
