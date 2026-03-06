@@ -3,6 +3,8 @@ name: Get Form Updates
 on:
   # Define when the workflow should run (e.g., manual trigger)
   workflow_dispatch:
+  schedule:
+    - cron: '2 */2 * * *' # 2 minutes past ever two hours
 
 jobs:
   run_django_command:
