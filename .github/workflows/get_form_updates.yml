@@ -1,4 +1,4 @@
-name: Get Form Updates
+name: Get form updates
 
 on:
   schedule:
@@ -25,24 +25,11 @@ on:
         type: environment
         required: true
 
-
 jobs:
   run_django_command:
     environment: get_form_update_env
 
     runs-on: ubuntu-latest
-
-    # services:
-    #   postgres:
-    #     image: postgis/postgis:14-master
-    #     env:
-    #       POSTGRES_USER: postgres
-    #       POSTGRES_PASSWORD: postgres
-    #       POSTGRES_DB: github_actions
-    #     ports:
-    #       - 5432:5432
-    #     # needed because the postgres container does not provide a healthcheck
-    #     options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
     - name: Checkout code
@@ -74,23 +61,12 @@ jobs:
         echo "$BOX_KEY" > sos_database/settings/box_cert.pem
       shell: bash
 
-    # - name: Configure Django settings (Optional)
-    #   run: |
-    #     # Set environment variables required by your Django project (e.g., DJANGO_SETTINGS_MODULE)
-    #     echo "DJANGO_SETTINGS_MODULE=your_project_name.settings" >> $GITHUB_ENV
-    #   # Use secrets for sensitive data like database credentials
-    #   env:
-    #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    #     SECRET_KEY: ${{ secrets.SECRET_KEY }}
-    #     # Add other necessary environment variables
-
     - name: Run the Django management command
       run: |
         # Navigate to directory containing manage.py if necessary (e.g., cd src)
         python manage.py check_form_updates
       # Ensure environment variables from the 'Configure Django settings' step are available
       env:
-        # DJANGO_SETTINGS_MODULE: ${{ env.DJANGO_SETTINGS_MODULE }}
         # Pass other required env vars
         DB_NAME: ${{ secrets.DB_NAME }}
         DB_USER: ${{ secrets.DB_USER }}
