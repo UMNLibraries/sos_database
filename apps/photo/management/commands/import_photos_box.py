@@ -81,6 +81,17 @@ class Command(BaseCommand):
         image_id_list = build_folder_file_list(self.box, settings.BOX_FORM_IMAGES_FOLDER_ID)
         image_df = pd.DataFrame(image_id_list)
         return image_df
+
+    def parse_qualtrics_date(self, input_str):
+        try:
+            return datetime.datetime.strptime(input_str, "%m/%d/%Y").date()
+        except ValueError:
+            try:
+                return datetime.datetime.strptime(input_str, "%m-%d-%Y").date()
+            except ValueError:
+                return None
+        except:
+            return None
     
     def import_photo_objects(self, image_df):
         ''' This is simpler than the version in import_photos_gsheet because no moderation has happened yet.'''
@@ -92,10 +103,7 @@ class Command(BaseCommand):
             park_id = parks_lookup[row['site_code']]['id']
             centerpoint = parks_lookup[row['site_code']]['centerpoint']
 
-            try:
-                date_taken = datetime.datetime.strptime(row['date_taken'], "%m/%d/%Y").date()
-            except ValueError:
-                date_taken = None
+            date_taken = self.parse_qualtrics_date(row['date_taken'])
 
             # photo_type - NOTE NUMBERS ARE NOT IN ORDER OF QUESTIONS ON SITE
             if row['photo_type'] in [2.0, '2.0']:

@@ -1,4 +1,5 @@
 import os
+import datetime
 # from io import StringIO
 # from tempfile import NamedTemporaryFile
 
@@ -12,8 +13,25 @@ from apps.photo.models import ManualCorrection, Photo
 from apps.photo.utils.box import get_box_client, get_box_file_as_tempfile
 from apps.photo.utils.export import build_public_manifest, dump_cx_model_backups
 from apps.photo.utils.image_processing import remove_exif, get_exif_data_general, get_gps_info
+from apps.photo.management.commands.import_photos_box import Command as ImportPhotosBox
 
 from django.conf import settings
+
+
+class BoxImportTestCase(TestCase):
+
+    def test_qualtrics_date_parser(self):
+        '''Values separated by slashes OR dashes should be parsed as dates
+        due to overly flexible input standards on Qualrics date picker'''
+
+        parsed_date = ImportPhotosBox.parse_qualtrics_date(None, 'asdfs')
+        self.assertEqual(parsed_date, None)
+
+        parsed_date = ImportPhotosBox.parse_qualtrics_date(None, '01/02/2025')
+        self.assertEqual(parsed_date, datetime.date(2025,1,2))
+
+        parsed_date = ImportPhotosBox.parse_qualtrics_date(None, '01-02-2025')
+        self.assertEqual(parsed_date, datetime.date(2025,1,2))
 
 
 class ImageLocationTestCase(TestCase):
