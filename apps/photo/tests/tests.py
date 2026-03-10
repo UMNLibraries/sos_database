@@ -14,9 +14,49 @@ from apps.photo.utils.box import get_box_client, get_box_file_as_tempfile
 from apps.photo.utils.export import build_public_manifest, dump_cx_model_backups
 from apps.photo.utils.image_processing import remove_exif, get_exif_data_general, get_gps_info
 from apps.photo.management.commands.import_photos_box import Command as ImportPhotosBox
+from apps.photo.management.commands.import_photos_gsheet import Command as ImportPhotosGsheet
 
 from django.conf import settings
 
+
+class GsheetsImportTestCase(TestCase):
+
+    def test_additional_notes_parser(self):
+        '''Check if changes have been made to additional notes, and if so, create ManualCorrection object.
+        Otherwise, set original and final values to same thing.'''
+
+        row = {
+            'original_additional_notes': 'This is a long story but stick with me.',
+            'additional_notes': 'I cleaned this up.',
+            'photo_file_name': '12345'
+        }
+
+        notes_obj = ImportPhotosGsheet.parse_additional_notes(None, row)
+        self.assertEqual(notes_obj['additional_notes'], 'This is a long story but stick with me.')
+        self.assertEqual(notes_obj['additional_notes_final'], 'I cleaned this up.')
+        self.assertEqual(notes_obj['bool_cx'], True)
+
+        row = {
+            'original_additional_notes': 'This is a good one.',
+            'additional_notes': 'This is a good one.',
+            'photo_file_name': '12345'
+        }
+
+        notes_obj = ImportPhotosGsheet.parse_additional_notes(None, row)
+        self.assertEqual(notes_obj['additional_notes'], 'This is a good one.')
+        self.assertEqual(notes_obj['additional_notes_final'], 'This is a good one.')
+        self.assertEqual(notes_obj['bool_cx'], False)
+
+        row = {
+            'original_additional_notes': 'This is a bad one.',
+            'additional_notes': '',
+            'photo_file_name': '12345'
+        }
+
+        notes_obj = ImportPhotosGsheet.parse_additional_notes(None, row)
+        self.assertEqual(notes_obj['additional_notes'], 'This is a bad one.')
+        self.assertEqual(notes_obj['additional_notes_final'], None)
+        self.assertEqual(notes_obj['bool_cx'], True)
 
 class BoxImportTestCase(TestCase):
 
@@ -243,5 +283,21 @@ class ManualCorrectionTestCase(TestCase):
         self.assertEqual(p_3.location_type_final, 'PK')
         self.assertEqual(p_3.location_type, 'PK')
 
+    def test_new_manual_correction_blank_title(self):
+        p_3 = Photo.objects.get(pk=3)
+        p_3.save()
 
+        self.assertEqual(p_3.title_final, 'Initial title')
+        self.assertEqual(p_3.additional_notes, 'Initial additional notes')
+        self.assertEqual(p_3.additional_notes_final, 'Initial additional notes')
 
+        new_mc = ManualCorrection(
+            photo=p_3,
+            # photo_file_name = models.CharField(max_length=255, null=True)
+            title='BLANK',
+            additional_notes='blank',
+        )
+        new_mc.save()
+
+        self.assertEqual(p_3.title_final, None)
+        self.assertEqual(p_3.additional_notes_final, None)

@@ -1,23 +1,20 @@
 import os
-import re
-import csv
 import boto3
-import time
 import datetime
 import pandas as pd
 import numpy as np
-from multiprocessing.pool import ThreadPool
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
 from apps.park.models import Park
-from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
+from apps.photo.models import Photo, ManualCorrection, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
 from apps.photo.utils.gsheets import gsheets_login, get_gsheets_df
-from apps.photo.utils.box import get_box_client, build_folder_file_list, load_box_image
-from apps.photo.utils.image_processing import remove_exif, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
+from apps.photo.utils.box import get_box_client, build_folder_file_list
+from apps.photo.utils.image_processing import get_jpg_filename
 
 from sos_database.storage_backends import PrivateMediaStorage
 from django.conf import settings
+
 
 class Command(BaseCommand):
 
@@ -27,48 +24,26 @@ class Command(BaseCommand):
 
     logging_keys = [
         'Scope', 'Metadata edits', 'box_foldername', 'photo_file_name', 'title', 'additional_notes', 'date_taken', 'collection', 'park_name', 'id', 'original_file_name', 'ext', 'longitude', 'latitude', 'location_source', 'type', 'alpha_code', 'box_id',
-        'thumb_url', 'main_image_url', 's3_error'
+        'thumb_url', 'main_image_url', 's3_error', 'original_additional_notes'
     ]
 
     raw_storage_class = 'GLACIER_IR'
     
     box = get_box_client()
     gsheets = gsheets_login()
-    session = boto3.Session(profile_name='sos')
-    s3 = session.client('s3', region_name='us-east-2')
-    upload_batch_size = -1
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-
-    min_thread_time = None
-    num_threads = None
 
     def add_arguments(self, parser):
-
-        parser.add_argument('-l', '--limit', type=int, default=-1,
-                        help='Only upload a certain number of images, primarily for testing')
 
         parser.add_argument('-b', '--box_refresh', action='store_true',
                         help='Re-generate CSV of Box Image IDs.')
 
-        parser.add_argument('-r', '--reload_objs', action='store_true',
-                        help='Delete and re-create Django Photo instances.')
-
-        parser.add_argument('-y', '--dry', action='store_true',
-                        help='Just tell me how many keys are left to upload and exit.')
+        parser.add_argument('-r', '--reset_cxes', action='store_true',
+                        help='Delete and re-create Django ManualCorrection instances, possibly deleting manual work but increasing speed.')
         
-        parser.add_argument('-p', '--pool', type=int, default=8,
-                            help='How many threads to use? (Default is 8)')
-
-        parser.add_argument('-m', '--mintime', type=float, default=0,
-                            help='What is the minimum time to execute each thread (rate limit) in seconds (Default is 0)')
-        
-    def clear_all(self):
-        Photo.objects.all().delete()
-
     def get_box_image_ids_by_site(self):
         # Only run this cell if you need to re-generate image IDs
         image_id_list = []
-        # box = get_box_client()
+
         for park in Park.objects.exclude(box_folder_id=''):
 
             print(f"Getting image IDs for {park.site_code} ({park.box_folder_id})")
@@ -84,18 +59,18 @@ class Command(BaseCommand):
     def build_image_df(self, image_id_list):
         """ Main import of image metadata from Gsheets. Join to Box image IDs since we don't already have them connected in that sheet."""
 
-        # service = gsheets_login()
         image_df = get_gsheets_df(self.gsheets, settings.GSHEETS_PHOTOS_IMPORT_ID, settings.GSHEETS_PHOTOS_IMPORT_SHEET_NAME)
         # print(image_df)
         print(f"Found {image_df.shape[0]} images in data set.")
+        image_df.drop(columns=['box_id'], inplace=True)
 
         # Join to box image_ids
         site_df = pd.read_csv(self.BOX_IMAGE_IDS_CSV, dtype={'box_id': str})
 
-        # print(image_df.columns)
-        # print(site_df.columns)
 
-        image_df = image_df.merge(
+        image_df = image_df.drop(
+            columns=['box_filename']
+        ).merge(
             site_df,
             how="left",
             left_on="photo_file_name",
@@ -104,15 +79,52 @@ class Command(BaseCommand):
 
         # Remove unexpected columns
         existing_colums = list(image_df.columns)
+        # print(existing_colums)
         keep_columns = [e for e in existing_colums if e in self.logging_keys]
+        # print(f'Keep columns: : {keep_columns}')
         image_df = image_df[keep_columns]
 
+        # TODO: Fill na on notes
+        image_df['additional_notes'] = image_df['additional_notes'].fillna('')
+        image_df['original_additional_notes'] = image_df['original_additional_notes'].fillna('')
+
         return image_df
+    
+    def parse_additional_notes(self, row):
+        '''Check if changes have been made to additional notes, and if so, create ManualCorrection object.
+        Otherwise, set original and final values to same thing.'''
+
+        additional_notes = row['original_additional_notes']
+        if row['additional_notes'] != additional_notes:
+            # Manual correction needed
+            additional_notes_final = row['additional_notes']
+            if additional_notes_final == '':
+                additional_notes_final = None
+            bool_cx = True
+        else:
+            additional_notes_final = additional_notes
+            bool_cx = False
+
+        return {
+            'photo_file_name': row['photo_file_name'],
+            'additional_notes': additional_notes,
+            'additional_notes_final': additional_notes_final,
+            'bool_cx': bool_cx
+        }
+    
+
+    def delete_existing_gsheet_photo_objs(self, image_df, bool_reset_cxes=False):
+        photo_objs = Photo.objects.filter(photo_file_name__in=image_df.photo_file_name.to_list())
+        if bool_reset_cxes:
+            ManualCorrection.objects.filter(photo_id__in=photo_objs.values_list('id', flat=True)).delete()
+        photo_objs.delete()
+        # print(len(photo_objs))
     
     def import_photo_objects(self, image_df):
         parks_lookup = {park['site_code']: park['id'] for park in Park.objects.all().values('id', 'site_code')}
 
         photo_objs = []
+        cx_lookups = []
         for index, row in image_df.iterrows():
 
             park_id = parks_lookup[row['box_foldername']]
@@ -141,6 +153,10 @@ class Command(BaseCommand):
                 location_type = row['location_source']
                 location_type = next((lt[0] for lt in LOCATION_TYPE_CHOICES if row['location_source'].lower() == lt[1].lower()), '')
 
+            notes_obj = self.parse_additional_notes(row)
+            if notes_obj['bool_cx']:
+                cx_lookups.append(notes_obj)
+
             photo = Photo(
                 park_id=park_id,
                 scope=scope,
@@ -154,8 +170,8 @@ class Command(BaseCommand):
                 date_taken=date_taken,
                 title=row['title'],
                 title_final=row['title'],  # Set initial "final" value
-                additional_notes=row['additional_notes'],
-                additional_notes_final=row['additional_notes'],  # Set initial "final" value
+                additional_notes=notes_obj['additional_notes'],
+                additional_notes_final=notes_obj['additional_notes_final'],  # Set initial "final" value
                 # location=location_orig,  # Don't set this now, instead have location_embedded value that requires opening the image in Box
                 location_final=location_orig,  # Set initial "final" value
                 location_type=location_type,
@@ -167,95 +183,50 @@ class Command(BaseCommand):
 
         Photo.objects.bulk_create(photo_objs, batch_size=1000)
 
+        return {'photo_objs': photo_objs, 'cx_lookups': cx_lookups}
     
-    def create_upload_list(self, image_df, current_thumbs, current_main_images):
-        """ This might be redundant, will revisit after importing metadata to Django model """
+    def create_cxes(self, photo_objs, cx_lookups, bool_reset_cxes=False):
+
+        photo_objs_lookup = {obj.photo_file_name: obj.pk for obj in photo_objs}
         
-        upload_list = image_df.copy()
+        if bool_reset_cxes:
+            print('Adding ManualCorrections the fast way.')
+            cx_objs = []
+            for cx in cx_lookups:
 
-        upload_list['jpg_filename'] = upload_list['photo_file_name'].apply(lambda x: get_jpg_filename(x))
-        # media_url_root = f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/{PrivateMediaStorage.location}/'
-        upload_list['thumb_key'] = upload_list['jpg_filename'].apply(lambda x: os.path.join(PrivateMediaStorage.location, 'thumbs', x))
-        upload_list['thumb_url'] = f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/' + upload_list['thumb_key']
-        upload_list['main_key'] = upload_list['jpg_filename'].apply(lambda x: os.path.join(PrivateMediaStorage.location, 'images', x))
-        upload_list['main_image_url'] = f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/' + upload_list['main_key']
+                if not cx['additional_notes_final']:
+                    notes = 'BLANK'
+                else:
+                    notes = cx['additional_notes_final']
 
-        # Filter down if you don't want to do the whole set
-        if self.upload_batch_size > 0:
-            upload_list = upload_list[:self.upload_batch_size]
+                cx_obj = ManualCorrection(
+                    photo_id=photo_objs_lookup[cx['photo_file_name']],
+                    additional_notes=notes
+                )
+                cx_objs.append(cx_obj)
+            ManualCorrection.objects.bulk_create(cx_objs)
 
-        print(f"Found {len(upload_list)} images from spreadsheet for upload to S3...")
+        else:
+            print('Adding ManualCorrections, but only re-setting additional notes')
+            for cx in cx_lookups:
 
-        print("Checking which images have been uploaded already...")
-        upload_list['thumb_uploaded'] = upload_list['thumb_key'].apply(lambda x: x in current_thumbs)
-        upload_list['main_image_uploaded'] = upload_list['main_key'].apply(lambda x: x in current_main_images)
+                if not cx['additional_notes_final']:
+                    notes = 'BLANK'
+                else:
+                    notes = cx['additional_notes_final']
 
-        print(f"Found {upload_list[upload_list['thumb_uploaded'] == True].shape[0]} already uploaded, matching thumbnails.")
-        print(f"Found {upload_list[upload_list['main_image_uploaded'] == True].shape[0]} already uploaded, matching main images.")
-
-        upload_list = upload_list.to_dict('records')
-
-        return upload_list
-    
-    # def upload_missing_files(self, upload_list):
-        
-    #     with open(self.LOGGING_MANIFEST_PATH, 'w') as done_manifest:
-    #         done_manifest.write(','.join(self.logging_keys) + "\n")
-
-    #     pool = ThreadPool(processes=self.num_threads)
-    #     pool.map(self.send_to_s3, upload_list)
-
-    # def send_to_s3(self, row):
-        
-    #     bucket_name = self.bucket_name
-    #     start_time = time.time()
-    #     s3_error = False
-    #     bool_upload = False
-
-    #     if row['thumb_uploaded'] == False or row['main_image_uploaded'] == False:
-    #         bool_upload = True
-    #         box = self.box
-    #         # Get image from Box and open in PIL
-    #         im = load_box_image(box, row['box_id'])
-
-    #         if not im:
-    #             print("WARNING: COULDN'T UPLOAD IMAGE.")
-    #             s3_error = True
-    #             thumb_url = None
-    #             main_image_url = None
-    #         else:
-
-    #             if row['thumb_uploaded'] == False:
-    #                 print(f"Uploading thumbnail {row['thumb_url']}...")
-    #                 thumb_url = thumbnail_to_s3(self.s3, remove_exif(im), bucket_name, row['thumb_key'], row['thumb_url'])
-        
-    #             if row['main_image_uploaded'] == False:
-    #                 print(f"Uploading image {row['main_image_url']}...")
-    #                 main_image_url = image_to_s3(self.s3, remove_exif(im), bucket_name, row['main_key'], row['thumb_url'])
- 
-    #     row['s3_error'] = s3_error
-    #     # print(row)
-    
-    #     with open(self.LOGGING_MANIFEST_PATH, 'a') as csvfile:
-    #         spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
-    #         spamwriter.writerow(row.values())
-
-    #     # If necessary, wait before completing
-    #     if bool_upload and self.min_thread_time > 0:
-    #         elapsed = time.time() - start_time
-    #         time_remaining = self.min_thread_time - elapsed
-    #         if time_remaining > 0:
-    #             print(f'Pausing {time_remaining} seconds')
-    #             time.sleep(time_remaining)
-
-    #     return row
+                print(f"Creating ManualCorrection for {cx['photo_file_name']}")
+                obj, created = ManualCorrection.objects.get_or_create(
+                    photo_id=photo_objs_lookup[cx['photo_file_name']],
+                    defaults={"additional_notes": notes},
+                )
+                if not created:
+                    obj.additional_notes = notes
+                    obj.save()
         
     def handle(self, *args, **kwargs):
-        reload_photos = kwargs['reload_objs']
+        reset_cxes = kwargs['reset_cxes']
         box_refresh = kwargs['box_refresh']
-        self.upload_batch_size = kwargs['limit']
-        self.min_thread_time = kwargs['mintime']
-        self.num_threads = kwargs['pool']
 
         if box_refresh:
             image_id_list = self.get_box_image_ids_by_site()
@@ -263,22 +234,9 @@ class Command(BaseCommand):
             image_id_list = pd.read_csv(self.BOX_IMAGE_IDS_CSV)
 
         image_df = self.build_image_df(image_id_list)
-        print(image_df)
 
-        if reload_photos:
-            Photo.objects.all().delete()
-            photos = self.import_photo_objects(image_df)
+        self.delete_existing_gsheet_photo_objs(image_df, reset_cxes)
+        import_results = self.import_photo_objects(image_df)
 
-        # Check which images already uploaded
-        current_thumbs = get_current_s3_matches(self.s3, self.bucket_name, 'media/thumbs')
-        current_main_images = get_current_s3_matches(self.s3, self.bucket_name, 'media/images')
-        print(current_main_images)
-        print(f"Found {len(current_main_images)} main images and {len(current_thumbs)} thumbnails already on S3.")
-
-        upload_list = self.create_upload_list(image_df, current_thumbs, current_main_images)
-
-        if kwargs['dry']:
-            # Exit without uploading.
-            return False
-
-        # self.upload_missing_files(upload_list).  # Deprecated by box_photos_to_private_s3 command
+        if len(import_results['cx_lookups']) > 0:
+            self.create_cxes(import_results['photo_objs'], import_results['cx_lookups'], reset_cxes)

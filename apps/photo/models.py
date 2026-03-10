@@ -144,6 +144,13 @@ class Photo(models.Model):
             return getattr(obj, attr)
         return getattr(self, attr)
     
+    def get_final_value_nullable(self, obj, attr, blank_value="blank"):
+        if getattr(obj, attr) and getattr(obj, attr).lower() == blank_value:
+            return None
+        elif getattr(obj, attr) not in [None, '']:
+            return getattr(obj, attr)
+        return getattr(self, attr)
+    
     def check_embedded_location(self):
         if self.location_type == 'US' and self.location_embedded:
             self.location_final = self.location_embedded
@@ -156,11 +163,15 @@ class Photo(models.Model):
     def get_final_values(self):
         self.bool_manual_correction = False
         if self.manualcorrection_set.count() > 0:
-            self.title_final = self.get_final_value(self.manualcorrection_set.first(), 'title')
+            # Allow blank values to overwrite (blank_value set to False)...
+            self.title_final = self.get_final_value_nullable(self.manualcorrection_set.first(), 'title')
             if self.title_final != self.title:
                 self.bool_manual_correction = True
 
-            self.additional_notes_final = self.get_final_value(self.manualcorrection_set.first(), 'additional_notes')
+            # Allow blank values to overwrite (blank_value set to False)...
+            self.additional_notes_final = self.get_final_value_nullable(self.manualcorrection_set.first(), 'additional_notes')
+            # if not self.additional_notes_final:
+            #     self.additional_notes_final = None
             if self.additional_notes_final != self.additional_notes:
                 self.bool_manual_correction = True
 

@@ -48,9 +48,9 @@ def gsheets_login():
     return False
 
 
-def get_sheet_values(service, sheet_id, sheet_name):
+def get_sheet_values(service, sheet_id, sheet_name, column_limit='Z'):
 
-    range_value = f'{sheet_name}!A:R'
+    range_value = f'{sheet_name}!A:{column_limit}'
     # Call the Sheets API
     sheet = service.spreadsheets()
     result = (

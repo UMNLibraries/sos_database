@@ -1,4 +1,4 @@
-import os
+# import os
 import re
 import datetime
 import pandas as pd
@@ -15,16 +15,7 @@ from django.conf import settings
 
 class Command(BaseCommand):
 
-    DATA_DIR = os.path.join(settings.BASE_DIR, 'data')
-    # BOX_IMAGE_IDS_CSV = os.path.join(DATA_DIR, 'box_image_id_lookup.csv')
-    # LOGGING_MANIFEST_PATH = os.path.join(DATA_DIR, 's3_upload_results.csv')
-
-    # logging_keys = [
-    #     'Scope', 'Metadata edits', 'box_foldername', 'photo_file_name', 'title', 'additional_notes', 'date_taken', 'collection', 'park_name', 'id', 'original_file_name', 'ext', 'longitude', 'latitude', 'location_source', 'type', 'alpha_code', 'box_id',
-    #     'thumb_url', 'main_image_url', 's3_error'
-    # ]
-
-    raw_storage_class = 'GLACIER_IR'
+    # DATA_DIR = os.path.join(settings.BASE_DIR, 'data')
     
     box = get_box_client()
 
@@ -56,25 +47,7 @@ class Command(BaseCommand):
             print(missing_site_codes)
 
         return form_response_df
-    
-    # def get_box_image_ids_by_site(self, site_code_list):
-    #     # Only run this cell if you need to re-generate image IDs
-    #     image_id_list = []
-    #     # box = get_box_client()
-    #     for park in Park.objects.exclude(box_folder_id='').filter(site_code__in=site_code_list):
-
-    #         print(f"Getting image IDs for {park.site_code} ({park.box_folder_id})")
-
-    #         image_id_list += build_folder_file_list(self.box, park.box_folder_id)
-
-    #     site_df = pd.DataFrame(image_id_list)
-    #     # print(image_id_list)
-
-    #     # os.makedirs(self.DATA_DIR, exist_ok=True)
-    #     # site_df.to_csv(self.BOX_IMAGE_IDS_CSV, index=False)
-
-    #     return site_df
-    
+       
     def get_box_image_ids_bulk(self):
         '''Photos that did not go through stage 1 manual processing are in one big folder, not listed by site'''
         
@@ -184,10 +157,6 @@ class Command(BaseCommand):
 
         # Fix Box filename because a prefix has been pre-pended at upload
         form_response_df['photo_file_name_final'] = form_response_df.apply(lambda row: self.build_real_box_filename(row), axis=1)
-
-        # # Convert numerical photo_type variable
-        # form_response_df['photo_type'] = form_response_df['photo_type_numeric'].apply(lambda x: parse_photo_type(x))
-        # form_response_df.drop(columns=['photo_type_numeric'], inplace=True)
 
         # print(form_response_df)
 
