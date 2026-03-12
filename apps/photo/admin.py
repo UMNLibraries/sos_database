@@ -107,6 +107,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
                 'photo_type',
                 'scope',
                 'status',
+                'review_reason',
                 'location_type',
                 'bool_manual_correction',
                 'location_final',

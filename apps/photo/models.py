@@ -63,6 +63,14 @@ PHOTO_TYPE_CHOICES = (
 )
 
 
+REVIEW_REASON_CHOICES = (
+    ('SCP', 'Not sure if in scope'),
+    ('BOD', 'Person or identifiable body part'),
+    ('RFL', 'Reflection'),
+    ('IMG', 'Poor image quality'),
+)
+
+
 class Collection(models.Model):
     name = models.CharField(max_length=100, db_index=True)
     bool_active = models.BooleanField(default=True)
@@ -80,6 +88,7 @@ class Photo(models.Model):
     sign = models.ForeignKey(Sign, null=True, blank=True, on_delete=models.SET_NULL)
     scope = models.CharField(max_length=4, blank=True, db_index=True, choices=SCOPE_CHOICES)
     status = models.CharField(max_length=4, db_index=True, choices=STATUS_CHOICES)
+    review_reason = models.CharField(max_length=4, db_index=True, choices=REVIEW_REASON_CHOICES, null=True, blank=True)
     photo_type = models.CharField(max_length=4, db_index=True, choices=PHOTO_TYPE_CHOICES, default="NML")
     box_id = models.CharField(max_length=255, db_index=True)
     # box_filename = models.CharField(max_length=255)
