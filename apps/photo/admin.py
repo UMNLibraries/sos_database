@@ -82,6 +82,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
         'scope',
         'status',
         'photo_type',
+        'bool_manual_correction'
     )
 
     autocomplete_fields = ['park', 'sign', 'collections']
