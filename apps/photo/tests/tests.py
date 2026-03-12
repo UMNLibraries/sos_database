@@ -162,6 +162,13 @@ class ExportTestCase(TestCase):
         export_df = build_public_manifest()
         self.assertEqual(set(self.public_fields), set(export_df.columns))
 
+    # def test_blank_additional_notes(self):
+    #     '''Do Photos that have manualcorrections setting additional_notes to blank show up as empty strings?'''
+    #     export_df = build_public_manifest()
+
+    #     blanks = export_df[export_df['additional_notes'] == 'BLANK']
+    #     self.assertEqual(blanks.shape[0], 0)
+
 class ManualCorrectionTestCase(TestCase):
     fixtures = ['state.json', 'sitetype.json', 'park.json', 'photo.json', 'manualcorrections.json']
 
