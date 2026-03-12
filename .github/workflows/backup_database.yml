@@ -1,8 +1,8 @@
 name: Save backup of production DB to S3 bucket
 
 on:
-  # schedule:
-  #   - cron: '2 */3 * * *' # 2 minutes past ever three hours
+  schedule:
+    - cron: '5 0 * * 0' # 5 minutes after midnight on Sunday
   
   # Define when the workflow should run (e.g., manual trigger)
   workflow_dispatch:
@@ -52,19 +52,10 @@ jobs:
         pip install -r requirements.txt
         # If your manage.py is not in the root directory, adjust the path (e.g., cd src; pip install -r requirements.txt)
 
-    # - name: Move Box private key to file
-    #   # Pass the secret as an environment variable to prevent it from
-    #   # being exposed in the logs if it were used directly in the run command.
-    #   env:
-    #     BOX_KEY: ${{ secrets.BOX_KEY }}
-    #   run: |
-    #     echo "$BOX_KEY" > sos_database/settings/box_cert.pem
-    #   shell: bash
-
     - name: Run the Django management command
       run: |
         # Navigate to directory containing manage.py if necessary (e.g., cd src)
-        python manage.py dbbackup
+        python manage.py dbbackup --compress
       # Ensure environment variables from the 'Configure Django settings' step are available
       env:
         # Pass other required env vars
