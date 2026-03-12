@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'simple_history',
     'storages',
     'dalf',
+    'dbbackup',
 ]
 
 MIDDLEWARE = [
@@ -93,28 +94,6 @@ DATABASES = {
         },
     }
 }
-
-if os.environ.get("GITHUB_WORKFLOW"):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.contrib.gis.db.backends.postgis",
-            "NAME": os.environ['DB_NAME'],
-            "USER": os.environ['DB_USER'],
-            "PASSWORD": os.environ['DB_PASSWORD'],
-            "HOST": os.environ['DB_HOST'],
-            "PORT": "5432",
-        }
-    }
-
-    import json
-    BOX_JWT = json.loads(os.environ['BOX_JWT'])
-    BOX_FORM_RESPONSES_FILE_ID = os.environ['BOX_FORM_RESPONSES_FILE_ID']
-    BOX_FORM_IMAGES_FOLDER_ID = os.environ['BOX_FORM_IMAGES_FOLDER_ID']
-    AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
-    AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-    AWS_S3_REGION_NAME = os.environ['AWS_S3_REGION_NAME']
-    AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 
 
 # Password validation
@@ -169,6 +148,12 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "sos_database.storage_backends.StaticStorage",
+    },
+    "dbbackup": {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'OPTIONS': {
+            'location': 'sos_database/data/backup',
+        },
     }
 }
 
@@ -176,6 +161,40 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+if os.environ.get("GITHUB_WORKFLOW"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.contrib.gis.db.backends.postgis",
+            "NAME": os.environ['DB_NAME'],
+            "USER": os.environ['DB_USER'],
+            "PASSWORD": os.environ['DB_PASSWORD'],
+            "HOST": os.environ['DB_HOST'],
+            "PORT": "5432",
+        }
+    }
+
+    import json
+    BOX_JWT = json.loads(os.environ['BOX_JWT'])
+    BOX_FORM_RESPONSES_FILE_ID = os.environ['BOX_FORM_RESPONSES_FILE_ID']
+    BOX_FORM_IMAGES_FOLDER_ID = os.environ['BOX_FORM_IMAGES_FOLDER_ID']
+    AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+    AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+    AWS_S3_REGION_NAME = os.environ['AWS_S3_REGION_NAME']
+    AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    DBBACKUP_SERVER_EMAIL = os.environ['DBBACKUP_SERVER_EMAIL']
+
+    STORAGES['dbbackup'] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "default_acl": "private",
+            "location": "backup/prod/"
+        }
+    }
 
 try:
     from .local_settings import *

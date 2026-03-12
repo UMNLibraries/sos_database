@@ -21,6 +21,7 @@ python-slugify = "*"
 django-postgres-copy = "*"
 exifread = "*"
 geopandas = "*"
+django-dbbackup = "*"
 
 [dev-packages]
 
