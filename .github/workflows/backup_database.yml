@@ -72,11 +72,11 @@ jobs:
         DB_USER: ${{ secrets.DB_USER }}
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         DB_HOST: ${{ secrets.DB_HOST }}
-        # BOX_JWT: ${{ secrets.BOX_JWT }}
+        BOX_JWT: ${{ secrets.BOX_JWT }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_S3_REGION_NAME: ${{ vars.AWS_S3_REGION_NAME }}
-        # BOX_FORM_RESPONSES_FILE_ID: ${{ vars.BOX_FORM_RESPONSES_FILE_ID }}
-        # BOX_FORM_IMAGES_FOLDER_ID: ${{ vars.BOX_FORM_IMAGES_FOLDER_ID }}
+        BOX_FORM_RESPONSES_FILE_ID: ${{ vars.BOX_FORM_RESPONSES_FILE_ID }}
+        BOX_FORM_IMAGES_FOLDER_ID: ${{ vars.BOX_FORM_IMAGES_FOLDER_ID }}
         AWS_STORAGE_BUCKET_NAME: ${{ vars.AWS_STORAGE_BUCKET_NAME }}
         DBBACKUP_SERVER_EMAIL: ${{ vars.DBBACKUP_SERVER_EMAIL }}
