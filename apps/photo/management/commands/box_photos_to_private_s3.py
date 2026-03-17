@@ -11,7 +11,7 @@ from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
 # from apps.park.models import Park
-# from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
+from apps.photo.models import Photo
 from apps.photo.utils.box import get_box_client, load_box_image, get_box_file_as_tempfile
 from apps.photo.utils.image_processing import remove_exif, get_gps_info, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
 
