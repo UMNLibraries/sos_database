@@ -1,4 +1,6 @@
 import os
+import json
+import datetime
 import boto3
 from django.core.management.base import BaseCommand
 
@@ -26,11 +28,17 @@ class Command(BaseCommand):
             print('WARNING: GeoJSON looks suspicious. Exiting without overwriting file.')
             return False
 
-        gdf.to_file(LOCAL_GEOJSON_PATH, driver="GeoJSON")
+        # Create timestamped file
+        geojson_str = gdf.to_json()
+        geojson_dict = json.loads(geojson_str)
+        geojson_dict['dt_updated'] = datetime.datetime.now().isoformat()
+        with open(LOCAL_GEOJSON_PATH, 'w') as f:
+            json.dump(geojson_dict, f)
+        # gdf.to_file(LOCAL_GEOJSON_PATH, driver="GeoJSON")
 
         if kwargs['upload']:
             print('Uploading to S3 data directory...')
-            
+
             if hasattr(settings, 'AWS_PROFILE_NAME'):
                 session = boto3.Session(profile_name=settings.AWS_PROFILE_NAME)
             else:
