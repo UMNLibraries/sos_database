@@ -137,7 +137,7 @@ def build_map_gdf():
         "park__site_code",
     )
 
-    print(photos)
+    # print(photos)
 
     df = pd.DataFrame(photos)
     df.rename(columns={
@@ -159,7 +159,7 @@ def build_map_gdf():
         'photo_count': 'approved_photos'
     }, inplace=True)
 
-    print(approved_counts_df)
+    # print(approved_counts_df)
 
     pending_counts_df = counts_df[counts_df['status'].isin(['AT', 'RD'])].groupby([
         'site_code',
@@ -168,7 +168,7 @@ def build_map_gdf():
         'photo_count': 'pending_photos'
     }, inplace=True)
 
-    print(pending_counts_df)
+    # print(pending_counts_df)
 
     parks_df = parks_df.merge(
         approved_counts_df.drop(columns=['status']),
@@ -191,13 +191,37 @@ def build_map_gdf():
     gdf.drop(columns=['center_wkt'], inplace=True)
 
     gdf['sos_live_link'] = settings.SOS_VIEWER_LIVE_LINK + '?site=' + gdf['site_code']
-    print(gdf)
-    print(gdf.columns)
+    # print(gdf)
+    # print(gdf.columns)
 
     # from apps.photo.utils.export import build_map_gdf
     # build_map_gdf()
     return gdf
-    
+
+
+def data_file_to_s3(s3, local_file_path, bucket_name, out_key, acl=None, storage_class='GLACIER_IR', content_type='application/json'):
+    '''Input: file path. Output: S3 URL of file.'''
+    # out_jpg_buffer = BytesIO()
+    # im.save(out_jpg_buffer, format="JPEG")
+    # out_jpg_buffer.seek(0)
+
+    with open(local_file_path, 'rb') as f:
+        args = {
+            'Body': f,
+            'Bucket': bucket_name,
+            'Key': out_key,
+            'StorageClass': storage_class,
+            'ContentType': content_type,
+        }
+        
+        if acl == 'public-read':
+            args['ACL'] = 'public-read'
+
+        put_result = s3.put_object(**args)
+
+        return put_result
+    return False
+
 
 def dump_cx_model_backups(app_name, model_name):
     model = apps.get_model(app_name, model_name)
@@ -246,4 +270,4 @@ def fill_final_value(attr):
         setattr(p, f"{attr}_final", getattr(p, attr))
         update_objs.append(p)
 
-    Photo.objects.bulk_update(update_objs, [f'{attr}_final']) 
+    Photo.objects.bulk_update(update_objs, [f'{attr}_final'])

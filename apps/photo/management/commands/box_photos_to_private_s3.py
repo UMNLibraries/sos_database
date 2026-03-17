@@ -1,17 +1,17 @@
 import os
-import re
+# import re
 import csv
 import boto3
 import time
-import datetime
+# import datetime
 import pandas as pd
-import numpy as np
+# import numpy as np
 from multiprocessing.pool import ThreadPool
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
-from apps.park.models import Park
-from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
+# from apps.park.models import Park
+# from apps.photo.models import Photo, SCOPE_CHOICES, LOCATION_TYPE_CHOICES
 from apps.photo.utils.box import get_box_client, load_box_image, get_box_file_as_tempfile
 from apps.photo.utils.image_processing import remove_exif, get_gps_info, thumbnail_to_s3, image_to_s3, get_current_s3_matches, get_jpg_filename
 
