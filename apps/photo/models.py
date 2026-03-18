@@ -39,6 +39,7 @@ STATUS_CHOICES = (
     ('RD', 'Ready for Review'),
     ('AT', 'Needs Attention'),
     ('SV', 'Save for Later'),
+    ('RJ', 'Rejected'),
 )
 
 
@@ -87,7 +88,7 @@ class Photo(models.Model):
     park = models.ForeignKey(Park, null=True, on_delete=models.SET_NULL)
     sign = models.ForeignKey(Sign, null=True, blank=True, on_delete=models.SET_NULL)
     scope = models.CharField(max_length=4, blank=True, db_index=True, choices=SCOPE_CHOICES)
-    status = models.CharField(max_length=4, db_index=True, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=4, db_index=True, choices=STATUS_CHOICES, null=True, blank=True)
     review_reason = models.CharField(max_length=4, db_index=True, choices=REVIEW_REASON_CHOICES, null=True, blank=True)
     photo_type = models.CharField(max_length=4, db_index=True, choices=PHOTO_TYPE_CHOICES, default="NML")
     box_id = models.CharField(max_length=255, db_index=True)
