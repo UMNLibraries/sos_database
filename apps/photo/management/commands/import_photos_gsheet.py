@@ -136,6 +136,10 @@ class Command(BaseCommand):
                 status = 'SV'
             elif row['Scope'].lower() == 'needs attention':
                 status = 'AT'
+            elif row['Scope'].lower() == 'exact duplicate':
+                status = 'RJ'
+            elif row['Scope'].lower() == 'out of scope':
+                status = 'RJ'
             elif row['Metadata edits'].lower() == 'needs attention':
                 status = 'AT'
             else:
