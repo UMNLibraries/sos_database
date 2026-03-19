@@ -1,8 +1,8 @@
 name: Get form updates
 
 on:
-  schedule:
-    - cron: '2 */3 * * *' # 2 minutes past ever three hours
+  # schedule:
+  #   - cron: '2 */3 * * *' # 2 minutes past ever three hours
   
   # Define when the workflow should run (e.g., manual trigger)
   workflow_dispatch:
