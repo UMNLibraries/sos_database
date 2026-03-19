@@ -11,6 +11,7 @@ from apps.photo.models import Photo, ManualCorrection, SCOPE_CHOICES, LOCATION_T
 from apps.photo.utils.gsheets import gsheets_login, get_gsheets_df
 from apps.photo.utils.box import get_box_client, build_folder_file_list
 from apps.photo.utils.image_processing import get_jpg_filename
+from apps.photo.utils.import_utils import set_collections
 
 from sos_database.storage_backends import PrivateMediaStorage
 from django.conf import settings
@@ -111,7 +112,6 @@ class Command(BaseCommand):
             'additional_notes_final': additional_notes_final,
             'bool_cx': bool_cx
         }
-    
 
     def delete_existing_gsheet_photo_objs(self, image_df, bool_reset_cxes=False):
         photo_objs = Photo.objects.filter(photo_file_name__in=image_df.photo_file_name.to_list())
@@ -125,6 +125,7 @@ class Command(BaseCommand):
 
         photo_objs = []
         cx_lookups = []
+        collection_lookups = []
         for index, row in image_df.iterrows():
 
             park_id = parks_lookup[row['box_foldername']]
@@ -241,6 +242,8 @@ class Command(BaseCommand):
 
         self.delete_existing_gsheet_photo_objs(image_df, reset_cxes)
         import_results = self.import_photo_objects(image_df)
+
+        set_collections(image_df)
 
         if len(import_results['cx_lookups']) > 0:
             self.create_cxes(import_results['photo_objs'], import_results['cx_lookups'], reset_cxes)

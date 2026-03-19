@@ -41,6 +41,12 @@ class SignAdmin(admin.ModelAdmin):
 class CollectionAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
+    list_display = ['name', 'get_photo_count']
+
+    def get_photo_count(self, obj):
+        return obj.photo_set.count()
+    get_photo_count.short_description = 'Phots in collection'
+
 
 class ManualCorrectionInline(admin.StackedInline):
     model = ManualCorrection
@@ -78,11 +84,12 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
     list_display = ['__str__', 'title_final', 'scope', 'status', 'dt_form', 'date_taken']
 
     list_filter = (
-        ('park', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK)
+        ('park', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK),
         'scope',
         'status',
         'photo_type',
-        'bool_manual_correction'
+        ('collections', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK)
+        # 'bool_manual_correction'
     )
 
     autocomplete_fields = ['park', 'sign', 'collections']
