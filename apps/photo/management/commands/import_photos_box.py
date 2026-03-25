@@ -183,11 +183,11 @@ class Command(BaseCommand):
             # Get numerical Box IDs from Box
             image_id_list = self.get_box_image_ids_bulk()
 
-            form_response_df.to_csv('form_response_df.csv')
+            # form_response_df.to_csv('form_response_df.csv')
 
-            print('all images in folder next...')
-            print(image_id_list)
-            image_id_list.to_csv('image_id_list.csv')
+            # print('all images in folder next...')
+            # print(image_id_list)
+            # image_id_list.to_csv('image_id_list.csv')
 
             # print(image_id_list)
             form_response_df = form_response_df.merge(

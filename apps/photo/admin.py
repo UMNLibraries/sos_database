@@ -104,8 +104,6 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
             'fields': (
                 'image_preview',
                 'park',
-                'sign',
-                'collections',
                 'date_taken',
                 'dt_form',
                 'get_title',
@@ -117,11 +115,13 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
                 'status',
                 'review_reason',
                 'location_type',
-                'bool_manual_correction',
+                # 'bool_manual_correction',
                 'location_final',
                 'location_embedded',
                 # 'location_final',
                 'get_location_type',
+                'sign',
+                'collections',
             )
         }),
         ('Additional metadata', {
