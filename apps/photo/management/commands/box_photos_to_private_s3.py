@@ -178,7 +178,8 @@ class Command(BaseCommand):
         for p in photos_to_update:
             matching_row = next((l for l in self.embedded_locations if l['photo_file_name'] == p.photo_file_name), None)
             if matching_row:
-                p.location_embedded = Point(float(matching_row['longitude']), float(matching_row['latitude']))
+                print(matching_row)
+                p.location_embedded = Point(float(matching_row['image_longitude']), float(matching_row['image_latitude']))
                 update_objs.append(p)
 
         Photo.objects.bulk_update(update_objs, ['location_embedded'])
