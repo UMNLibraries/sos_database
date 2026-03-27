@@ -1,6 +1,6 @@
 # SOS database
 
-A scratch version of a Django database for Save Our Signs
+A Django database to manage Save Our Signs submissions and images.
 
 ## Building DB from scratch
 ```
@@ -10,29 +10,32 @@ python manage.py import_photos_box  # Files that weren't in first batch
 python manage.py box_photos_to_private_s3
 ```
 
-## Steps for checking for new form entries
+## To check for new form entries
 ```python
-python manage.py import_photos_box
-# If new photos found...
-python manage.py box_photos_to_private_s3
+python manage.py check_form_updates
 ```
 
-## Workflow
+## To upload approved images to public storage and re-export manifest
+```python
+python manage.py update_live_photos
+python manage.py export_manifests
+# TODO: automate upload of manifests
+```
 
-1. Qualtrics form
-2. Google sheet import for previous batch only because it contains moderations
-3. Box images/spreadsheet
+## General workflow explanation
+
+1. Entry submitted to Qualtrics form
+2. Qualtrics output and Box details sent to spreadsheet in Box
 4. DB import and copy of images to private S3
 5. Admin editing
 6. Push to live public S3
 
--Sept. 24 cutoff -- get only newer ones from Box
+Images from before Sept. 24 cutoff were imported from the original Google sheet
 
 ## Bulk uploads
+TK
 
-
-
-## Potential models
+## Potential models (old, just keeping in case we want to revisit)
 
 State
 

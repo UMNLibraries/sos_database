@@ -22,6 +22,7 @@ django-postgres-copy = "*"
 exifread = "*"
 geopandas = "*"
 django-dbbackup = "*"
+openpyxl = "*"
 
 [dev-packages]
 

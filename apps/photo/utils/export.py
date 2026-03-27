@@ -18,7 +18,7 @@ def build_public_manifest():
 
     photos = Photo.objects.filter(
         scope='IN',
-        status__in=['LV', 'AP']
+        status__in=['LV']
     ).annotate(
         states=ArrayAgg('park__states__name'),
         site_type=ArrayAgg('park__site_types__name'),
@@ -42,7 +42,7 @@ def build_public_manifest():
         'park__website',
     )
 
-    print(photos)
+    # print(photos)
 
     public_df = pd.DataFrame(photos)
     public_df = public_df.rename(columns={
@@ -67,8 +67,8 @@ def build_public_manifest():
     public_df['main_image_url'] = public_df['revisedphoto__main_image_url'].combine_first(public_df['main_image_url'])
     public_df['thumb_url'] = public_df['revisedphoto__thumb_url'].combine_first(public_df['thumb_url'])
 
-    print(public_df[['main_image_url']].drop_duplicates())
-    print(public_df)
+    # print(public_df[['main_image_url']].drop_duplicates())
+    # print(public_df)
 
     # final values we're shooting for...
     public_fields = [
@@ -89,7 +89,7 @@ def build_public_manifest():
     
 
     final_df = public_df[public_fields]
-    print(final_df)
+    # print(final_df)
 
     # final_df.to_csv(PUBLIC_MANIFEST_PATH, index=False)
 
