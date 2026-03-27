@@ -117,7 +117,7 @@ class Command(BaseCommand):
         '''Check whether Photo objects that are being worked on have been successfully uploaded.
         Only update status to "Approved" in cases where both main image and thumbnail have
         been successfully uploaded'''
-        
+
         main_image_uploads = [row['public_s3_key'] for row in self.upload_log if 'thumbs' not in row['public_s3_key'] and row['bool_upload'] == True]
         main_images_public = current_main_images + main_image_uploads
         main_images_public_df = pd.DataFrame(main_images_public, columns=['main_image_public'])
@@ -165,14 +165,13 @@ class Command(BaseCommand):
         ))
 
         # Main images
-        # TODO: Remove head()
         main_images_to_upload, main_images_to_delete = self.prepare_manifest('main', live_photo_objs_df.copy(), current_main_images_df)
         
         if main_images_to_upload.shape[0] > 0:
             print("Uploading main images...")
 
             pool = ThreadPool(processes=self.num_threads)
-            pool.map(self.send_to_s3, main_images_to_upload.head().to_dict('records'))
+            pool.map(self.send_to_s3, main_images_to_upload.to_dict('records'))
 
         # Thumbnails
         thumbnails_to_upload, thumbnails_to_delete = self.prepare_manifest('thumb', live_photo_objs_df, current_thumbs_df)
@@ -180,19 +179,18 @@ class Command(BaseCommand):
         if thumbnails_to_upload.shape[0] > 0:
             print("Uploading thumbnails...")
             pool = ThreadPool(processes=self.num_threads)
-            pool.map(self.send_to_s3, thumbnails_to_upload.head().to_dict('records'))
+            pool.map(self.send_to_s3, thumbnails_to_upload.to_dict('records'))
 
         # Delete routine
-        # TODO: Remove head()
         if main_images_to_delete.shape[0] > 0:
             print("Deleting main images...")
             pool = ThreadPool(processes=self.num_threads)
-            pool.map(self.delete_s3_image, main_images_to_delete.head().to_dict('records'))
+            pool.map(self.delete_s3_image, main_images_to_delete.to_dict('records'))
 
         if main_images_to_delete.shape[0] > 0:
             print("Deleting thumbnails...")
             pool = ThreadPool(processes=self.num_threads)
-            pool.map(self.delete_s3_image, thumbnails_to_delete.head().to_dict('records'))
+            pool.map(self.delete_s3_image, thumbnails_to_delete.to_dict('records'))
 
         # Updating status of photo records
         self.update_django_photo_status(current_main_images, current_thumbs, live_photo_objs_df)
