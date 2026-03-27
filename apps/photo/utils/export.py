@@ -2,19 +2,17 @@ import os
 import datetime
 import pandas as pd
 import geopandas as gpd
-from django.db.models import Func, FloatField, CharField, Count
+from django.db.models import Func, FloatField, CharField
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.conf import settings
 from django.apps import apps
 
-from apps.photo.models import Photo
+from apps.photo.models import Photo, LOCATION_TYPE_CHOICES
 from apps.park.models import Park
 
 
 def build_public_manifest():
     '''Create public manifest CSV matching legacy format using Django model'''
-
-    # PUBLIC_MANIFEST_PATH = os.path.join(settings.BASE_DIR, 'data', 'public_manifest_main_TEST.csv')
 
     photos = Photo.objects.filter(
         scope='IN',
@@ -42,8 +40,6 @@ def build_public_manifest():
         'park__website',
     )
 
-    # print(photos)
-
     public_df = pd.DataFrame(photos)
     public_df = public_df.rename(columns={
         'park__site_code': 'site_code',
@@ -67,8 +63,12 @@ def build_public_manifest():
     public_df['main_image_url'] = public_df['revisedphoto__main_image_url'].combine_first(public_df['main_image_url'])
     public_df['thumb_url'] = public_df['revisedphoto__thumb_url'].combine_first(public_df['thumb_url'])
 
-    # print(public_df[['main_image_url']].drop_duplicates())
-    # print(public_df)
+    # Prepend image URL
+    public_df['main_image_url'] = settings.SOS_VIEWER_URL_ROOT + public_df['main_image_url']
+    public_df['thumb_url'] = settings.SOS_VIEWER_URL_ROOT + public_df['thumb_url']
+
+    # Convert LOCATION_TYPE_CHOICES
+    public_df['location_source'] = public_df['location_source'].apply(lambda x: dict(LOCATION_TYPE_CHOICES)[x])
 
     # final values we're shooting for...
     public_fields = [
@@ -87,16 +87,10 @@ def build_public_manifest():
         'website',
     ]
     
-
     final_df = public_df[public_fields]
-    # print(final_df)
-
-    # final_df.to_csv(PUBLIC_MANIFEST_PATH, index=False)
 
     return final_df
 
-    # from apps.photo.utils.export import build_public_manifest
-    # build_public_manifest()
 
 def build_map_gdf():
 
@@ -137,8 +131,6 @@ def build_map_gdf():
         "park__site_code",
     )
 
-    # print(photos)
-
     df = pd.DataFrame(photos)
     df.rename(columns={
         'park__site_code': 'site_code',
@@ -159,16 +151,12 @@ def build_map_gdf():
         'photo_count': 'approved_photos'
     }, inplace=True)
 
-    # print(approved_counts_df)
-
     pending_counts_df = counts_df[counts_df['status'].isin(['AT', 'RD'])].groupby([
         'site_code',
     ]).agg('sum').reset_index()
     pending_counts_df.rename(columns={
         'photo_count': 'pending_photos'
     }, inplace=True)
-
-    # print(pending_counts_df)
 
     parks_df = parks_df.merge(
         approved_counts_df.drop(columns=['status']),
@@ -191,19 +179,12 @@ def build_map_gdf():
     gdf.drop(columns=['center_wkt'], inplace=True)
 
     gdf['sos_live_link'] = settings.SOS_VIEWER_LIVE_LINK + '?site=' + gdf['site_code']
-    # print(gdf)
-    # print(gdf.columns)
 
-    # from apps.photo.utils.export import build_map_gdf
-    # build_map_gdf()
     return gdf
 
 
 def data_file_to_s3(s3, local_file_path, bucket_name, out_key, acl=None, storage_class='GLACIER_IR', content_type='application/json'):
     '''Input: file path. Output: S3 URL of file.'''
-    # out_jpg_buffer = BytesIO()
-    # im.save(out_jpg_buffer, format="JPEG")
-    # out_jpg_buffer.seek(0)
 
     with open(local_file_path, 'rb') as f:
         args = {
@@ -239,7 +220,6 @@ def dump_cx_model_backups(app_name, model_name):
         columns=['photo_id'], inplace=True, errors='ignore')
 
     print(df)
-    # outfile = save_backup_file(df, model_name.lower())
 
     return df
 
@@ -250,7 +230,6 @@ def save_backup_file(df, filename_root):
 
     outfile = os.path.join(backup_dir,
                             f'{filename_root}_{datetime.datetime.now().date()}.csv')
-    # print(outfile)
     df.to_csv(outfile, index=False)
 
     return outfile

@@ -17,7 +17,9 @@ class Command(BaseCommand):
         main_manifest_df = build_public_manifest()
         print(f"Found {main_manifest_df.shape[0]} live images.")
         main_manifest_path = os.path.join(self.DATA_DIR, 'public_manifest_main.csv')
+        main_manifest_excel_path = os.path.join(self.DATA_DIR, 'sos_public_manifest.xlsx')
         main_manifest_df.to_csv(main_manifest_path, index=False)
+        main_manifest_df.to_excel(main_manifest_excel_path, index=False)
 
         site_codes = main_manifest_df['site_code'].drop_duplicates().to_list()
         print(f"Exporting {len(site_codes)} site manifests...")
