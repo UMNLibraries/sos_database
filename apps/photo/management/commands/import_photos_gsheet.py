@@ -173,6 +173,7 @@ class Command(BaseCommand):
                 photo_file_name=row['photo_file_name'],
                 original_file_name=row['original_file_name'],
                 date_taken=date_taken,
+                # date_submitted='2025-01-01',  # Hard-code date?
                 title=row['title'],
                 title_final=row['title'],  # Set initial "final" value
                 additional_notes=notes_obj['additional_notes'],

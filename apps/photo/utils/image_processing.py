@@ -6,6 +6,7 @@ from PIL import Image, ImageOps
 from PIL.ExifTags import TAGS, GPSTAGS
 from urllib.parse import urlsplit
 import exifread as ef
+from botocore.exceptions import ClientError
 
 from io import BytesIO
 
@@ -89,6 +90,28 @@ def thumbnail_to_s3(s3, im, bucket_name, out_key, full_link_path, acl=None, stor
     return full_link_path
 
 
+def copy_image_to_public_s3(s3, private_bucket_name, private_s3_key, public_bucket_name, public_s3_key, acl='public-read', storage_class='GLACIER_IR'):
+    '''Copies an image stored in private storage to public storage as is. No exif removal because that is assumed to have been done before upload to private storage.'''
+
+    copy_source = {
+        'Bucket': private_bucket_name,
+        'Key': private_s3_key
+    }
+
+    try:
+        s3.copy_object(
+            CopySource=copy_source,
+            Bucket=public_bucket_name,
+            Key=public_s3_key,
+            ACL=acl
+        )
+        print(f"Successfully copied '{private_s3_key}' to '{public_bucket_name}/{public_s3_key}'")
+    except ClientError as e:
+        print(f"Error copying '{private_s3_key}' to '{public_bucket_name}/{public_s3_key}'")
+        return False
+    return True
+
+
 def get_current_s3_matches(s3, bucket_name, prefix):
 
     matching_keys = []
@@ -105,7 +128,6 @@ def get_current_s3_matches(s3, bucket_name, prefix):
 
 
 def get_exif_data_general(im):
-    # im = ImageOps.exif_transpose(im)
 
     exif_data = im.getexif()
     if not exif_data:
