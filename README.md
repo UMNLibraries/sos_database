@@ -7,12 +7,19 @@ A Django database to manage Save Our Signs submissions and images.
 python manage.py import_park_sites
 python manage.py import_photos_gsheet --reload_objs.  # First batch files
 python manage.py import_photos_box  # Files that weren't in first batch
+python manage.py import_photos_bulk
 python manage.py box_photos_to_private_s3
 ```
 
 ## To check for new form entries
 ```python
 python manage.py check_form_updates
+```
+
+## To check for new bulk uploads
+```python
+python manage.py import_photos_bulk
+python manage.py box_photos_to_private_s3
 ```
 
 ## To upload approved images to public storage and re-export manifest
