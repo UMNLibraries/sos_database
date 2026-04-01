@@ -183,7 +183,7 @@ def build_map_gdf():
     return gdf
 
 
-def data_file_to_s3(s3, local_file_path, bucket_name, out_key, acl=None, storage_class='GLACIER_IR', content_type='application/json'):
+def data_file_to_s3(s3, local_file_path, bucket_name, out_key, acl=None, storage_class='GLACIER_IR', content_type='application/json', cache_seconds=60):
     '''Input: file path. Output: S3 URL of file.'''
 
     with open(local_file_path, 'rb') as f:
@@ -193,6 +193,7 @@ def data_file_to_s3(s3, local_file_path, bucket_name, out_key, acl=None, storage
             'Key': out_key,
             'StorageClass': storage_class,
             'ContentType': content_type,
+            'CacheControl': f'public, max-age={cache_seconds}'
         }
         
         if acl == 'public-read':
