@@ -1,8 +1,8 @@
 name: Get form updates
 
 on:
-  # schedule:
-  #   - cron: '2 */3 * * *' # 2 minutes past ever three hours
+  schedule:
+    - cron: '2 */4 * * *' # 2 minutes past ever four hours
   
   # Define when the workflow should run (e.g., manual trigger)
   workflow_dispatch:
@@ -65,6 +65,7 @@ jobs:
       run: |
         # Navigate to directory containing manage.py if necessary (e.g., cd src)
         python manage.py check_form_updates
+        python manage.py export_parks_map --upload
       # Ensure environment variables from the 'Configure Django settings' step are available
       env:
         # Pass other required env vars

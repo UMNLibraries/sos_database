@@ -22,6 +22,11 @@ python manage.py import_photos_bulk
 python manage.py box_photos_to_private_s3
 ```
 
+## To update the GeoJSON that powers the parks map
+```python
+python manage.py export_parks_map
+```
+
 ## To upload approved images to public storage and re-export manifest
 ```python
 python manage.py update_live_photos

@@ -69,6 +69,9 @@ class Command(BaseCommand):
 
         if form_response_df.shape[0] > 0:
 
+            form_response_df['title'] = form_response_df['title'].fillna(value='')
+            form_response_df['additional_notes'] = form_response_df['additional_notes'].fillna(value='')
+
             self.import_photo_objects(form_response_df)
 
             # Tweak collections column header
