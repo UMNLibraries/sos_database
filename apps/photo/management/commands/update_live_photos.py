@@ -161,8 +161,14 @@ class Command(BaseCommand):
         print(f"Found {len(current_main_images)} main images and {len(current_thumbs)} thumbnails already on public S3.")
 
         live_photo_objs_df = pd.DataFrame(Photo.objects.filter(status__in=['LV', 'AP'], scope='IN').values(
-            'id', 'thumb_url', 'main_image_url'
+            'id', 'thumb_url', 'main_image_url', 'revisedphoto__main_image_url', 'revisedphoto__thumb_url'
         ))
+
+        # Handle any revised photos
+        live_photo_objs_df['main_image_url'] = live_photo_objs_df['revisedphoto__main_image_url'].combine_first(live_photo_objs_df['main_image_url'])
+        live_photo_objs_df['thumb_url'] = live_photo_objs_df['revisedphoto__thumb_url'].combine_first(live_photo_objs_df['thumb_url'])
+
+        live_photo_objs_df.drop(columns=['revisedphoto__main_image_url', 'revisedphoto__thumb_url'], inplace=True)
 
         # Main images
         main_images_to_upload, main_images_to_delete = self.prepare_manifest('main', live_photo_objs_df.copy(), current_main_images_df)
