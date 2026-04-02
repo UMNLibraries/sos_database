@@ -6,7 +6,7 @@ from django.forms import Textarea
 from django.contrib.gis.forms.widgets import OSMWidget
 
 from apps.photo.models import Photo, Sign, Collection, ManualCorrection, RevisedPhoto
-from apps.park.models import State, Park, SiteType
+from apps.park.models import State, Park, SiteType, DOIFlag
 
 
 class SiteTypeAdmin(admin.ModelAdmin):
@@ -19,11 +19,24 @@ class StateAdmin(admin.ModelAdmin):
     ordering = ['name']
 
 
+class DOIFlagInline(admin.StackedInline):
+    model = DOIFlag
+    extra = 0
+
+
 class ParkAdmin(admin.GISModelAdmin):
     search_fields = ['name']
     ordering = ['name']
 
     autocomplete_fields = ['states', 'site_types', 'parent_site']
+
+    list_display = ['name', 'get_approved_photo_count', 'get_total_photo_count', 'get_flags']
+
+    list_filter = ['doiflag__flag_type']
+
+    inlines = [
+        DOIFlagInline
+    ]
 
     gis_widget_kwargs = {
         'attrs': {
@@ -32,6 +45,18 @@ class ParkAdmin(admin.GISModelAdmin):
             'default_zoom': 6
         },
     }
+
+    def get_flags(self, obj):
+        return [flag.get_flag_type_display() for flag in obj.doiflag_set.all()]
+    get_flags.short_description = 'DOI flags'
+
+    def get_approved_photo_count(self, obj):
+        return obj.photo_set.filter(status__in=['AP', 'LV']).count()
+    get_approved_photo_count.short_description = 'Approved photos'
+
+    def get_total_photo_count(self, obj):
+        return obj.photo_set.count()
+    get_total_photo_count.short_description = 'Total photos'
 
 
 class SignAdmin(admin.ModelAdmin):
@@ -45,7 +70,7 @@ class CollectionAdmin(admin.ModelAdmin):
 
     def get_photo_count(self, obj):
         return obj.photo_set.count()
-    get_photo_count.short_description = 'Phots in collection'
+    get_photo_count.short_description = 'Photos in collection'
 
 
 class ManualCorrectionInline(admin.StackedInline):

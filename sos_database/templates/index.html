@@ -3,6 +3,35 @@
 
 {% block page_title %}<title>SOS management database</title>{% endblock %}
 
+{% block extra_head %}
+
+<style>
+
+    table#park-counts {
+        margin-bottom: 3em;
+    }
+
+    table#park-counts th,
+    table#park-counts td {
+        padding: 4px;
+        border-bottom: 1px solid rgb(46, 94, 27);
+        text-align: right;
+    }
+
+    table#park-counts th:first-child,
+    table#park-counts td:first-child {
+        text-align: left;
+    }
+
+    table#park-counts td a:link {
+        font-size: 0.7em;
+        display: inline-block;
+        margin: 0 0.15em 0 0.3em;
+    }
+</style>
+
+{% endblock %}
+
 {% block main_content %}
 <h1>SOS management database</h1>
 
@@ -13,6 +42,24 @@
 
 {% endfor %}
 </ul>
+
+<h3>Current park counts</h3>
+<table id="park-counts" cellspacing="0">
+    <tr>
+        <th>Park</th>
+        <th>Live/ approved photos</th>
+        <th>Pending photos</th>
+        <th>Total photos</th>
+    </tr>
+    {% for park in park_counts %}
+    <tr>
+        <td>{{ park.name }} <a href="/admin/photo/photo/?park__id__exact={{ park.pk }}">Admin</a> <a href="{{ park.sos_live_link }}" target="_blank">Public viewer</a></td>
+        <td>{{ park.approved_photos }}</td>
+        <td>{{ park.pending_photos }}</td>
+        <td>{{ park.total_photos }}</td>
+    </tr>
+    {% endfor %}
+</table>
 
 {% endblock %}
 

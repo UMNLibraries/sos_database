@@ -117,6 +117,7 @@ class Photo(models.Model):
         storage=PrivateMediaStorage(), upload_to="thumbs", max_length=255, null=True, blank=True)
 
     #location info
+    bool_exif_location = models.BooleanField(null=True)  # Has this image been checked for internal location info?
     location_embedded = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (Embedded in photo)")
     # location = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (original)")
     location_final = models.PointField(srid=4326, null=True, blank=True, verbose_name="Location (current)")

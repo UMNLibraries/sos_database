@@ -92,8 +92,7 @@ def build_public_manifest():
     return final_df
 
 
-def build_map_gdf():
-
+def build_park_summary():
     # Site name
     # Latitude (park centerpoint)
     # Longitude (park centerpoint)
@@ -111,6 +110,7 @@ def build_map_gdf():
         latitude=Func('centerpoint', function='ST_Y', output_field=FloatField()),
         center_wkt=Func('centerpoint', function='ST_AsText', output_field=CharField()),
     ).values(
+        "pk",
         "name",
         "site_code",
         "website",
@@ -173,12 +173,19 @@ def build_map_gdf():
     parks_df['pending_photos'] = parks_df['pending_photos'].astype(int)
     parks_df['total_photos'] = parks_df['pending_photos'] + parks_df['approved_photos']
 
+    parks_df['sos_live_link'] = settings.SOS_VIEWER_LIVE_LINK + '?site=' + parks_df['site_code']
+
+    return parks_df
+
+
+def build_map_gdf():
+
+    parks_df = build_park_summary()
+
     gs = gpd.GeoSeries.from_wkt(parks_df['center_wkt'])
     gdf = gpd.GeoDataFrame(parks_df, geometry=gs, crs="EPSG:4326")
 
-    gdf.drop(columns=['center_wkt'], inplace=True)
-
-    gdf['sos_live_link'] = settings.SOS_VIEWER_LIVE_LINK + '?site=' + gdf['site_code']
+    gdf.drop(columns=['center_wkt', 'pk'], inplace=True)
 
     return gdf
 

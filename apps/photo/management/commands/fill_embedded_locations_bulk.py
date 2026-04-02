@@ -29,10 +29,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         '''Box is slow, so saving one row at a time is not really slower, and you don't lose partial progress'''
-        # update_objs = []
 
         filter_kwargs = {
-            'location_embedded__isnull': True
+            'location_embedded__isnull': True,
+            'bool_exif_location__isnull': True
         }
 
         start_date = kwargs['start_date']
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             if embedded_point:
                 print(p.photo_file_name, embedded_point)
                 p.location_embedded = embedded_point
-                p.save()
-                # update_objs.append(p)
-
-        # Photo.objects.bulk_update(update_objs, ['location_embedded'])
+                p.bool_exif_location = True
+            else:
+                p.bool_exif_location = False
+            p.save()

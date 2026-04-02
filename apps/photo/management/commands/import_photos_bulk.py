@@ -23,6 +23,9 @@ class Command(BaseCommand):
 
             park_id = parks_lookup[row['park_name']]['id']
             centerpoint = parks_lookup[row['park_name']]['centerpoint']
+
+            # Time inadvertantly added to date_taken
+            date_taken = row['date_taken'].replace(' 00:00:00', '')
       
             photo = Photo(
                 park_id=park_id,
@@ -32,8 +35,8 @@ class Command(BaseCommand):
                 # box_filename=row['photo_file_name_final'],
                 photo_file_name=row['photo_file_name'],
                 original_file_name=row['original_file_name'],
-                # date_taken=date_taken,
-                dt_form=f"{row['date_taken']}Z",
+                date_taken=date_taken,
+                dt_form=row['dt_form'],
                 title=row['title'],
                 title_final=row['title'],  # Set initial "final" value
                 additional_notes=row['additional_notes'],
