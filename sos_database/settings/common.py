@@ -188,7 +188,7 @@ if os.environ.get("GITHUB_WORKFLOW"):
     DBBACKUP_SERVER_EMAIL = os.environ['DBBACKUP_SERVER_EMAIL']
     SOS_VIEWER_S3_BUCKET = os.environ['SOS_VIEWER_S3_BUCKET']
     SOS_VIEWER_URL_ROOT = f'https://{SOS_VIEWER_S3_BUCKET}.s3.us-east-2.amazonaws.com/'
-    SOS_VIEWER_LIVE_LINK = f'{SOS_VIEWER_URL_ROOT}/sos-public-viewer/viewer.html'
+    SOS_VIEWER_LIVE_LINK = f'{SOS_VIEWER_URL_ROOT}sos-public-viewer/viewer.html'
 
     STORAGES['dbbackup'] = {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
