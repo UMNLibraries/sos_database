@@ -113,6 +113,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
         'scope',
         'status',
         'photo_type',
+        'review_reason',
         ('collections', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK)
         # 'bool_manual_correction'
     )

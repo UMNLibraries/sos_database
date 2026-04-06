@@ -67,8 +67,10 @@ PHOTO_TYPE_CHOICES = (
 REVIEW_REASON_CHOICES = (
     ('SCP', 'Not sure if in scope'),
     ('BOD', 'Person or identifiable body part'),
+    ('PER', 'Personally identifying information'),
     ('RFL', 'Reflection'),
     ('IMG', 'Poor image quality'),
+    ('ROT', 'Needs to be rotated'),
 )
 
 
