@@ -70,7 +70,7 @@ REVIEW_REASON_CHOICES = (
     ('PER', 'Personally identifying information'),
     ('RFL', 'Reflection'),
     ('IMG', 'Poor image quality'),
-    ('ROT', 'Needs to be rotated'),
+    ('ROT', 'Image needs to be rotated'),
 )
 
 
@@ -248,7 +248,7 @@ class ManualCorrection(models.Model):
     additional_notes = models.TextField(null=True, blank=True)
     location = models.PointField(srid=4326, null=True, blank=True)
     # location_type = models.CharField(max_length=3, choices=LOCATION_TYPE_CHOICES, null=True, blank=True)
-    comments = models.TextField(null=True, blank=True)
+    comments = models.TextField(null=True, blank=True, verbose_name="Internal comment")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     history = HistoricalRecords()
