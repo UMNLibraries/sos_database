@@ -6,6 +6,7 @@ from pillow_heif import register_heif_opener
 
 from boxsdk import JWTAuth
 from boxsdk import Client
+from boxsdk.exception import BoxValueError
 import pandas as pd
 
 from django.conf import settings
@@ -62,7 +63,11 @@ def get_box_file_as_tempfile(client, box_id):
 def load_box_image(client, box_id):
     '''Get a Box image file by ID and open in PIL for further operations'''
     if type(box_id) != float:
-        box_obj = client.file(box_id).get()
+        try:
+            box_obj = client.file(box_id).get()
+        except BoxValueError:
+            print(f'Error opening Box image {box_id}')
+            return False
     else:
         print(f'Error opening Box image {box_id}')
         return False

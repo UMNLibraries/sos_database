@@ -27,11 +27,17 @@ python manage.py box_photos_to_private_s3
 python manage.py export_parks_map --upload
 ```
 
+## To update the CSV that powers the parks table
+```python
+python manage.py export_parks_csv --upload
+```
+
 ## To upload approved images to public storage and re-export manifest
 ```python
 python manage.py update_live_photos
 python manage.py export_manifests --upload
 python manage.py export_parks_map --upload
+python manage.py export_parks_csv --upload
 ```
 
 ## General workflow explanation
