@@ -8,7 +8,7 @@ from django.conf import settings
 from django.apps import apps
 
 from apps.photo.models import Photo, LOCATION_TYPE_CHOICES
-from apps.park.models import Park
+from apps.park.models import Park, DOIFlag, FLAG_TYPE_CHOICES
 
 
 def build_public_manifest():
@@ -120,7 +120,23 @@ def build_park_summary():
     )
     parks_df = pd.DataFrame(parks)
 
-    # TODO: How to handle scope?
+    # DOIFlag statuses, merge into comma-separated list
+    flags = DOIFlag.objects.all().values('park', 'flag_type')
+    flags_df = pd.DataFrame(flags)
+    # Convert FLAG_TYPE_CHOICES
+    flags_df['flag_type'] = flags_df['flag_type'].apply(lambda x: dict(FLAG_TYPE_CHOICES)[x])
+    flags_by_park_df = flags_df.groupby('park')['flag_type'].agg(', '.join).reset_index()
+
+    parks_df = parks_df.merge(
+        flags_by_park_df,
+        how="left",
+        left_on="pk",
+        right_on="park"
+    )
+    parks_df.drop(columns=['park'], inplace=True)
+    parks_df['flag_type'] = parks_df['flag_type'].fillna('')
+
+    # Get photo counts by status
     photos = Photo.objects.filter(
         status__in=['AT', 'RD', 'AP', 'LV']
     ).exclude(
