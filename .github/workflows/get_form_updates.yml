@@ -66,6 +66,7 @@ jobs:
         # Navigate to directory containing manage.py if necessary (e.g., cd src)
         python manage.py check_form_updates
         python manage.py export_parks_map --upload
+        python manage.py export_parks_csv --upload
       # Ensure environment variables from the 'Configure Django settings' step are available
       env:
         # Pass other required env vars
