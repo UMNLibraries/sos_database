@@ -160,14 +160,14 @@ def build_park_summary():
         'pk': 'photo_count'
     }, inplace=True)
 
-    approved_counts_df = counts_df[counts_df['status'].isin(['LV', 'AP'])].groupby([
+    approved_counts_df = counts_df[counts_df['status'].isin(['LV'])].groupby([
         'site_code',
     ]).agg('sum').reset_index()
     approved_counts_df.rename(columns={
         'photo_count': 'approved_photos'
     }, inplace=True)
 
-    pending_counts_df = counts_df[counts_df['status'].isin(['AT', 'RD'])].groupby([
+    pending_counts_df = counts_df[counts_df['status'].isin(['AT', 'RD', 'AP'])].groupby([
         'site_code',
     ]).agg('sum').reset_index()
     pending_counts_df.rename(columns={
