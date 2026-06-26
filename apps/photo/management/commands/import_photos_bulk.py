@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 from django.core.management.base import BaseCommand
 
@@ -13,6 +14,20 @@ from django.conf import settings
 class Command(BaseCommand):
     
     box = get_box_client()
+
+    def parse_date_taken(self, input_str):
+        try:
+            return datetime.datetime.strptime(input_str, "%Y-%m-%d").date()
+        except ValueError:
+            try:
+                return datetime.datetime.strptime(input_str, "%m/%d/%Y").date()
+            except ValueError:
+                try:
+                    return datetime.datetime.strptime(input_str, "%m-%d-%Y").date()
+                except ValueError:
+                    return None
+        # except:
+        #     return None
     
     def import_photo_objects(self, image_df):
         ''' This is simpler than the version in import_photos_gsheet because no moderation has happened yet.'''
@@ -25,7 +40,7 @@ class Command(BaseCommand):
             centerpoint = parks_lookup[row['park_name']]['centerpoint']
 
             # Time inadvertantly added to date_taken
-            date_taken = row['date_taken'].replace(' 00:00:00', '')
+            date_taken = self.parse_date_taken(row['date_taken'].replace(' 00:00:00', ''))
       
             photo = Photo(
                 park_id=park_id,
