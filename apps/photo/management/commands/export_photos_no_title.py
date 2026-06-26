@@ -41,15 +41,19 @@ class Command(BaseCommand):
                     'main_image_url',
                     'revisedphoto__main_image_url'
                 ))
-                photos_df['main_image_url'] = photos_df['revisedphoto__main_image_url'].combine_first(photos_df['main_image_url'])
-                photos_df.drop(columns=['revisedphoto__main_image_url'], inplace=True)
-                photos_df['main_image_url'] = '=HYPERLINK("' + f'https://{settings.AWS_PUBLIC_BUCKET_NAME}.s3.amazonaws.com/' + photos_df['main_image_url'] + f'", "' + photos_df['main_image_url'] + '")'
 
-                photos_df['title'] = ''
-                photos_df['comments'] = ''
-                photos_df.rename(columns={'park__name': 'park_name'}, inplace=True)
-                print(photos_df)
+                if photos_df.shape[0] == 0:
+                    print('No photos from this site without a title.')
+                else:
+                    photos_df['main_image_url'] = photos_df['revisedphoto__main_image_url'].combine_first(photos_df['main_image_url'])
+                    photos_df.drop(columns=['revisedphoto__main_image_url'], inplace=True)
+                    photos_df['main_image_url'] = '=HYPERLINK("' + f'https://{settings.AWS_PUBLIC_BUCKET_NAME}.s3.amazonaws.com/' + photos_df['main_image_url'] + f'", "' + photos_df['main_image_url'] + '")'
 
-                today = datetime.datetime.now().date().strftime('%Y%m%d')
+                    photos_df['title'] = ''
+                    photos_df['comments'] = ''
+                    photos_df.rename(columns={'park__name': 'park_name'}, inplace=True)
+                    print(photos_df)
 
-                photos_df.to_excel(os.path.join(settings.BASE_DIR, 'data', f'{site_code}_missing_titles_{today}.xlsx'), index=False)
+                    today = datetime.datetime.now().date().strftime('%Y%m%d')
+
+                    photos_df.to_excel(os.path.join(settings.BASE_DIR, 'data', f'{site_code}_missing_titles_{today}.xlsx'), index=False)
