@@ -5,6 +5,8 @@ from django.db.models import F
 from django.forms import Textarea
 from django.contrib.gis.forms.widgets import OSMWidget
 from simple_history.admin import SimpleHistoryAdmin
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from apps.photo.models import Photo, Sign, Collection, ManualCorrection, RevisedPhoto
 from apps.park.models import State, Park, SiteType, DOIFlag
@@ -96,6 +98,27 @@ class RevisedPhotoInline(admin.StackedInline):
     extra = 0
     exclude = ['thumb_url', 'photo_file_name']
        
+
+class PhotoHistoryAdmin(SimpleHistoryAdmin):
+    list_display = ["__str__", "park", "history_user", "changed_fields", "main_record"]
+
+    search_fields = ['history_user__username', 'park__name']
+
+    def get_readonly_fields(self, request, obj=None):
+        # Extracts all field names from the model dynamically
+        return [f.name for f in self.model._meta.fields] + ['changed_fields']
+    
+    def changed_fields(self, obj):
+        """Displays which fields were modified."""
+        if obj.prev_record:
+            # Calculate changes between this and the previous record
+            delta = obj.diff_against(obj.prev_record)
+            return ", ".join(delta.changed_fields)
+        return "Initial Record"
+    
+    def main_record(self, obj):
+        return mark_safe(f"<a href='{reverse("admin:photo_photo_change", args=(obj.instance.id,))}'>Main record</a>")
+
 
 class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin, SimpleHistoryAdmin):
 
@@ -218,4 +241,4 @@ admin.site.register(Park, ParkAdmin)
 admin.site.register(Sign, SignAdmin)
 admin.site.register(Collection, CollectionAdmin)
 admin.site.register(Photo, PhotoAdmin)
-admin.site.register(Photo.history.model)
+admin.site.register(Photo.history.model, PhotoHistoryAdmin)
