@@ -113,7 +113,10 @@ class PhotoHistoryAdmin(SimpleHistoryAdmin):
         if obj.prev_record:
             # Calculate changes between this and the previous record
             delta = obj.diff_against(obj.prev_record)
-            return ", ".join(delta.changed_fields)
+            changes_list = []
+            for change in delta.changes:
+                changes_list.append(f"<strong>{change.field}:</strong> {change.old} → {change.new}")
+            return mark_safe(", ".join(changes_list))
         return "Initial Record"
     
     def main_record(self, obj):
