@@ -4,6 +4,7 @@ from django.contrib.gis.db import models
 from django.db.models import F
 from django.forms import Textarea
 from django.contrib.gis.forms.widgets import OSMWidget
+from simple_history.admin import SimpleHistoryAdmin
 
 from apps.photo.models import Photo, Sign, Collection, ManualCorrection, RevisedPhoto
 from apps.park.models import State, Park, SiteType, DOIFlag
@@ -96,7 +97,7 @@ class RevisedPhotoInline(admin.StackedInline):
     exclude = ['thumb_url', 'photo_file_name']
        
 
-class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin):
+class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin, SimpleHistoryAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -217,3 +218,4 @@ admin.site.register(Park, ParkAdmin)
 admin.site.register(Sign, SignAdmin)
 admin.site.register(Collection, CollectionAdmin)
 admin.site.register(Photo, PhotoAdmin)
+admin.site.register(Photo.history.model)

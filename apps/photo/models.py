@@ -129,6 +129,8 @@ class Photo(models.Model):
 
     bool_manual_correction = models.BooleanField(default=False)
 
+    history = HistoricalRecords()
+
     def __str__(self):
         if self.title_final:
             return f"{self.park.name} {self.id}: '{self.title_final}'"
