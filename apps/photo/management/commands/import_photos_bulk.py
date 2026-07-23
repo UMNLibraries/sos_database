@@ -1,3 +1,4 @@
+import re
 import datetime
 import pandas as pd
 from django.core.management.base import BaseCommand
@@ -16,6 +17,7 @@ class Command(BaseCommand):
     box = get_box_client()
 
     def parse_date_taken(self, input_str):
+        input_str = re.sub(r'[“]', '', input_str)
         try:
             return datetime.datetime.strptime(input_str, "%Y-%m-%d").date()
         except ValueError:
@@ -41,6 +43,8 @@ class Command(BaseCommand):
 
             # Time inadvertantly added to date_taken
             date_taken = self.parse_date_taken(row['date_taken'].replace(' 00:00:00', ''))
+
+            form_date = self.parse_date_taken(row['dt_form'])
       
             photo = Photo(
                 park_id=park_id,
@@ -51,7 +55,7 @@ class Command(BaseCommand):
                 photo_file_name=row['photo_file_name'],
                 original_file_name=row['original_file_name'],
                 date_taken=date_taken,
-                dt_form=row['dt_form'],
+                dt_form=form_date,
                 title=row['title'],
                 title_final=row['title'],  # Set initial "final" value
                 additional_notes=row['additional_notes'],

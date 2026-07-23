@@ -32,9 +32,6 @@ class Command(BaseCommand):
                     for row in reader:
                         print(row['First Name'], row['Last Name'], row['Email'], row['Group ID'], row['username'], row['Password'])
 
-                        # username = re.sub(r'[\'-]', "", f"{row['First Name'][0]}{row['Last Name']}").lower()
-                        # print(username)
-
                         new_user = User(
                             first_name=row['First Name'],
                             last_name=row['Last Name'],

@@ -48,13 +48,15 @@
     <tr>
         <th>Park</th>
         <th>Live/ approved photos</th>
-        <th>Pending photos</th>
+        <th>Ready for review</th>
+        <th>All pending photos</th>
         <th>Total photos</th>
     </tr>
     {% for park in park_counts %}
     <tr>
         <td>{{ park.name }} <a href="/admin/photo/photo/?park__id__exact={{ park.pk }}">Admin</a> <a href="{{ park.sos_live_link }}" target="_blank">Public viewer</a></td>
         <td>{{ park.approved_photos }}</td>
+        <td>{{ park.ready_for_review_photos }}</td>
         <td>{{ park.pending_photos }}</td>
         <td>{{ park.total_photos }}</td>
     </tr>

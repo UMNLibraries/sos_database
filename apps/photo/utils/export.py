@@ -174,6 +174,13 @@ def build_park_summary():
         'photo_count': 'pending_photos'
     }, inplace=True)
 
+    ready_for_review_counts_df = counts_df[counts_df['status'].isin(['RD'])].groupby([
+        'site_code',
+    ]).agg('sum').reset_index()
+    ready_for_review_counts_df.rename(columns={
+        'photo_count': 'ready_for_review_photos'
+    }, inplace=True)
+
     parks_df = parks_df.merge(
         approved_counts_df.drop(columns=['status']),
         how="left",
@@ -182,11 +189,16 @@ def build_park_summary():
         pending_counts_df.drop(columns=['status']),
         how="left",
         on="site_code"
+    ).merge(
+        ready_for_review_counts_df.drop(columns=['status']),
+        how="left",
+        on="site_code"
     )
 
     parks_df.fillna(value=0, inplace=True)
     parks_df['approved_photos'] = parks_df['approved_photos'].astype(int)
     parks_df['pending_photos'] = parks_df['pending_photos'].astype(int)
+    parks_df['ready_for_review_photos'] = parks_df['ready_for_review_photos'].astype(int)  # Do not add to totals, duplicative of pending_photos
     parks_df['total_photos'] = parks_df['pending_photos'] + parks_df['approved_photos']
 
     parks_df['sos_live_link'] = settings.SOS_VIEWER_LIVE_LINK + '?site=' + parks_df['site_code']
@@ -197,6 +209,8 @@ def build_park_summary():
 def build_map_gdf():
 
     parks_df = build_park_summary()
+    # Drop ready_for_review count
+    parks_df.drop(columns=['ready_for_review_photos'], inplace=True)
 
     gs = gpd.GeoSeries.from_wkt(parks_df['center_wkt'])
     gdf = gpd.GeoDataFrame(parks_df, geometry=gs, crs="EPSG:4326")

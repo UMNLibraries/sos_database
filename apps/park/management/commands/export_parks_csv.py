@@ -31,6 +31,10 @@ class Command(BaseCommand):
 
         # Create timestamped file
         df['dt_updated'] = datetime.datetime.now().isoformat()
+
+        # Drop ready_for_review count
+        df.drop(columns=['ready_for_review_photos'], inplace=True)
+
         df.to_csv(LOCAL_CSV_PATH, index=False)
 
         if kwargs['upload']:
