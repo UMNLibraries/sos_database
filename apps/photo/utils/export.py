@@ -7,7 +7,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.conf import settings
 from django.apps import apps
 
-from apps.photo.models import Photo, LOCATION_TYPE_CHOICES
+from apps.photo.models import Photo, LOCATION_TYPE_CHOICES, PHOTO_TYPE_CHOICES
 from apps.park.models import Park, DOIFlag, FLAG_TYPE_CHOICES
 
 
@@ -33,6 +33,7 @@ def build_public_manifest():
         'revisedphoto__main_image_url',
         'thumb_url',
         'revisedphoto__thumb_url',
+        'photo_type',
         'longitude',
         'latitude',
         'location_type_final',
@@ -70,6 +71,9 @@ def build_public_manifest():
     # Convert LOCATION_TYPE_CHOICES
     public_df['location_source'] = public_df['location_source'].apply(lambda x: dict(LOCATION_TYPE_CHOICES)[x])
 
+    # Convert PHOTO_TYPE_CHOICES
+    public_df['photo_type'] = public_df['photo_type'].apply(lambda x: dict(PHOTO_TYPE_CHOICES)[x])
+
     # final values we're shooting for...
     public_fields = [
         'site_code',
@@ -80,6 +84,7 @@ def build_public_manifest():
         'date_taken',
         'main_image_url',
         'thumb_url',
+        'photo_type',
         'longitude',
         'latitude',
         'location_source',
