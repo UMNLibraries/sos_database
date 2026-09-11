@@ -10,7 +10,7 @@ from postgres_copy import CopyManager
 
 from sos_database.storage_backends import PrivateMediaStorage
 
-from apps.park.models import Park, State
+from apps.park.models import Park, SubSite
 from apps.photo.utils.image_processing import remove_exif
 
 
@@ -51,13 +51,13 @@ LOCATION_TYPE_CHOICES = (
 
 
 '''
-Normal - This photo shows a sign in an NPS site. I do not think it has been changed in response to recent executive orders
+Regular - This photo shows a sign in an NPS site. I do not think it has been changed in response to recent executive orders
 Altered - This photo shows a site of removal/censorship. It shows a sign that has been altered in response to recent executive orders OR it shows an empty space that used to have a sign.
 Artistic - This photo shows a creative response to a sign change/removal. For example in Philadelphia, protestors taped posters reading "history is real" on the wall where an exhibit on slavery was removed.
 Other - Other
 '''
 PHOTO_TYPE_CHOICES = (
-    ('NML', 'Normal'),
+    ('NML', 'Regular'),
     ('ALT', 'Altered'),
     ('ART', 'Artistic'),
     ('OTH', 'Other'),
@@ -88,6 +88,7 @@ class Collection(models.Model):
 class Photo(models.Model):
     # associations and ids
     park = models.ForeignKey(Park, null=True, on_delete=models.SET_NULL)
+    subsite = models.ForeignKey(SubSite, null=True, blank=True, on_delete=models.SET_NULL)
     sign = models.ForeignKey(Sign, null=True, blank=True, on_delete=models.SET_NULL)
     scope = models.CharField(max_length=4, blank=True, db_index=True, choices=SCOPE_CHOICES)
     status = models.CharField(max_length=4, db_index=True, choices=STATUS_CHOICES, null=True, blank=True)

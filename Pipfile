@@ -23,6 +23,7 @@ exifread = "*"
 geopandas = "*"
 django-dbbackup = "*"
 openpyxl = "*"
+django-autocomplete-light = "*"
 
 [dev-packages]
 

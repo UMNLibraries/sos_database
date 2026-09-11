@@ -15,6 +15,15 @@ class State(models.Model):
         return self.name
 
 
+class ParkCollection(models.Model):
+    '''ParkCollection is used to associate different official NPS units that are part of a larger whole.'''
+    name = models.CharField(max_length=255, db_index=True)
+    collection_code = models.CharField(max_length=10, db_index=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Park(models.Model):
     name = models.CharField(max_length=255, db_index=True)
     site_code = models.CharField(max_length=10, db_index=True)
@@ -22,13 +31,7 @@ class Park(models.Model):
     states = models.ManyToManyField(State)
     site_types = models.ManyToManyField(SiteType)
 
-    parent_site = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='child_sites'
-    )
+    collections = models.ManyToManyField(ParkCollection)
 
     # Initially, imported from PHOTO Google sheet, not park list
     box_folder_id = models.CharField(max_length=255, blank=True)
@@ -37,6 +40,19 @@ class Park(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SubSite(models.Model):
+    '''Subsites are things that SOS creates to denote smaller parts of parks that are generally not official NPS units
+
+    If possible, subsites offered to admin users should only include subsites of the current Park selected.'''
+    name = models.CharField(max_length=255, db_index=True)
+    subsite_code = models.CharField(max_length=10, db_index=True, null=True, blank=True)
+    park = models.ForeignKey(Park, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
 
 
 FLAG_TYPE_CHOICES = (

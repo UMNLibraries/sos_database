@@ -18,8 +18,14 @@ from django.contrib import admin
 from django.urls import path
 
 from apps.photo.views import index
+# from apps.photo.views import SubSiteAutocomplete
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", index, name="index"),
+    # path(
+    #     'subsite-autocomplete/',
+    #     SubSiteAutocomplete.as_view(),
+    #     name='subsite-autocomplete',
+    # ),
 ]

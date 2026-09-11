@@ -9,7 +9,8 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from apps.photo.models import Photo, Sign, Collection, ManualCorrection, RevisedPhoto
-from apps.park.models import State, Park, SiteType, DOIFlag
+# from apps.photo.forms import PhotoForm
+from apps.park.models import State, Park, ParkCollection, SubSite, SiteType, DOIFlag
 
 
 class SiteTypeAdmin(admin.ModelAdmin):
@@ -22,6 +23,20 @@ class StateAdmin(admin.ModelAdmin):
     ordering = ['name']
 
 
+class ParkCollectionAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    ordering = ['name']
+
+
+class SubSiteAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    ordering = ['name']
+
+    list_display = ['__str__', 'park',]
+
+    autocomplete_fields = ['park']
+
+
 class DOIFlagInline(admin.StackedInline):
     model = DOIFlag
     extra = 0
@@ -31,11 +46,15 @@ class ParkAdmin(admin.GISModelAdmin):
     search_fields = ['name']
     ordering = ['name']
 
-    autocomplete_fields = ['states', 'site_types', 'parent_site']
+    autocomplete_fields = ['states', 'site_types', 'collections']
 
     list_display = ['name', 'get_approved_photo_count', 'get_total_photo_count', 'get_flags']
 
-    list_filter = ['doiflag__flag_type']
+    list_filter = (
+        'doiflag__flag_type',
+        'collections'
+        # ('collections', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK),
+    )
 
     inlines = [
         DOIFlagInline
@@ -145,18 +164,21 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin, SimpleHistoryAdmin):
         # 'bool_manual_correction'
     )
 
-    autocomplete_fields = ['park', 'sign', 'collections']
+    autocomplete_fields = ['park', 'sign', 'collections', 'subsite']
 
     inlines = [
         ManualCorrectionInline,
         RevisedPhotoInline
     ]
 
+    # form = PhotoForm  # Can't get the autocomplete to work at the moment
+
     fieldsets = (
         ('Basic info', {
             'fields': (
                 'image_preview',
                 'park',
+                'subsite',
                 'date_taken',
                 'dt_form',
                 'get_title',
@@ -239,6 +261,8 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin, SimpleHistoryAdmin):
     thumbnail_preview.allow_tags = True
 
 admin.site.register(State, StateAdmin)
+admin.site.register(ParkCollection, ParkCollectionAdmin)
+admin.site.register(SubSite, SubSiteAdmin)
 admin.site.register(SiteType, SiteTypeAdmin)
 admin.site.register(Park, ParkAdmin)
 admin.site.register(Sign, SignAdmin)
