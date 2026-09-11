@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 
-from dal import autocomplete
+# from dal import autocomplete
 
 from .models import Photo, STATUS_CHOICES
 from apps.photo.utils.export import build_park_summary
