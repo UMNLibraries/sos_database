@@ -27,6 +27,15 @@ class ParkCollectionAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['name']
 
+    readonly_fields = ['get_member_parks']
+
+    def get_member_parks(self, obj):
+        park_admin_links = []
+        for park in Park.objects.filter(collections=obj):
+            park_admin_links.append(f"<li><a href='{reverse("admin:park_park_change", args=(park.id,))}'>{park.__str__()}</a></li>")
+        return mark_safe('<ul>' + '\n'.join(park_admin_links) + '</ul>')
+    get_member_parks.short_description = 'Member parks'
+
 
 class SubSiteAdmin(admin.ModelAdmin):
     search_fields = ['name']

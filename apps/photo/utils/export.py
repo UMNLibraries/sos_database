@@ -11,15 +11,25 @@ from apps.photo.models import Photo, LOCATION_TYPE_CHOICES, PHOTO_TYPE_CHOICES
 from apps.park.models import Park, DOIFlag, FLAG_TYPE_CHOICES
 
 
+def list_or_blank(x):
+    if list(set(x)) == [None]:
+        return ''
+    else:
+        return '|'.join(list(set(x)))
+
+
 def build_public_manifest():
     '''Create public manifest CSV matching legacy format using Django model'''
 
     photos = Photo.objects.filter(
         scope='IN',
         status__in=['LV']
+    ).prefetch_related(
+        'park__collections__name'
     ).annotate(
         states=ArrayAgg('park__states__name'),
         site_type=ArrayAgg('park__site_types__name'),
+        park_collections=ArrayAgg('park__collections__name'),
         longitude=Func('location_final', function='ST_X', output_field=FloatField()),
         latitude=Func('location_final', function='ST_Y', output_field=FloatField()),
     ).values(
@@ -39,6 +49,7 @@ def build_public_manifest():
         'location_type_final',
         'states',
         'park__website',
+        'park_collections'
     )
 
     public_df = pd.DataFrame(photos)
@@ -74,6 +85,9 @@ def build_public_manifest():
     # Convert PHOTO_TYPE_CHOICES
     public_df['photo_type'] = public_df['photo_type'].apply(lambda x: dict(PHOTO_TYPE_CHOICES)[x])
 
+    # Concat collection_names
+    public_df['park_collections'] = public_df['park_collections'].apply(lambda x: list_or_blank(x))
+
     # final values we're shooting for...
     public_fields = [
         'site_code',
@@ -90,6 +104,7 @@ def build_public_manifest():
         'location_source',
         'states',
         'website',
+        'park_collections',
     ]
     
     final_df = public_df[public_fields]
@@ -110,15 +125,19 @@ def build_park_summary():
     # ('AT', 'Needs Attention'),
     # ('SV', 'Save for Later'),
 
-    parks = Park.objects.all().annotate(
+    parks = Park.objects.all().prefetch_related(
+        'collections'
+    ).annotate(
         longitude=Func('centerpoint', function='ST_X', output_field=FloatField()),
         latitude=Func('centerpoint', function='ST_Y', output_field=FloatField()),
         center_wkt=Func('centerpoint', function='ST_AsText', output_field=CharField()),
+        collection_names=ArrayAgg('collections__name'),
     ).values(
         "pk",
         "name",
         "site_code",
         "website",
+        "collection_names",
         "longitude",
         "latitude",
         "center_wkt"
@@ -131,6 +150,9 @@ def build_park_summary():
     # Convert FLAG_TYPE_CHOICES
     flags_df['flag_type'] = flags_df['flag_type'].apply(lambda x: dict(FLAG_TYPE_CHOICES)[x])
     flags_by_park_df = flags_df.groupby('park')['flag_type'].agg(', '.join).reset_index()
+
+    # Concat collection_names
+    parks_df['collection_names'] = parks_df['collection_names'].apply(lambda x: list_or_blank(x))
 
     parks_df = parks_df.merge(
         flags_by_park_df,
