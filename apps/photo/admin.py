@@ -165,6 +165,7 @@ class PhotoAdmin(admin.GISModelAdmin, DALFModelAdmin, SimpleHistoryAdmin):
 
     list_filter = (
         ('park', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK),
+        ('subsite', DALFRelatedFieldAjax),  # enable ajax completion for category field (FK),
         'scope',
         'status',
         'photo_type',

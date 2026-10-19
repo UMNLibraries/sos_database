@@ -26,6 +26,10 @@ def build_public_manifest():
         status__in=['LV']
     ).prefetch_related(
         'park__collections__name'
+    ).select_related(
+        'park__site_code',
+        'park__name',
+        'subsite__name',
     ).annotate(
         states=ArrayAgg('park__states__name'),
         site_type=ArrayAgg('park__site_types__name'),
@@ -49,7 +53,8 @@ def build_public_manifest():
         'location_type_final',
         'states',
         'park__website',
-        'park_collections'
+        'park_collections',
+        'subsite__name',
     )
 
     public_df = pd.DataFrame(photos)
@@ -60,6 +65,7 @@ def build_public_manifest():
         'title_final': 'title',
         'location_type_final': 'location_source',
         'park__website': 'website',
+        'subsite__name': 'subsite',
     })
     
     # Separate states with pipes
@@ -105,6 +111,7 @@ def build_public_manifest():
         'states',
         'website',
         'park_collections',
+        'subsite',
     ]
     
     final_df = public_df[public_fields]
