@@ -42,7 +42,7 @@ jobs:
 
     - name: Install gdal
       run: |
-        sudo apt-add-repository ppa:ubuntugis/ppa
+        # sudo apt-add-repository ppa:ubuntugis/ppa
         sudo apt update
         sudo apt install gdal-bin libgdal-dev
 
