@@ -38,7 +38,7 @@ class ParkCollectionAdmin(admin.ModelAdmin):
 
 
 class SubSiteAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+    search_fields = ['name', 'park__name', 'park__site_code']
     ordering = ['name']
 
     list_display = ['__str__', 'park',]
