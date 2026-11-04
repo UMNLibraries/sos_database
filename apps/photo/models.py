@@ -80,8 +80,8 @@ class Collection(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = "Photo Collection"
-        verbose_name_plural = "Photo Collections"
+        verbose_name = "Photo collection"
+        verbose_name_plural = "Photo collections"
 
     def __str__(self):
         return self.name
