@@ -53,6 +53,10 @@ class SubSite(models.Model):
     def __str__(self):
         return f"{self.park.site_code}: {self.name}"
 
+    class Meta:
+        verbose_name = "Subsite"
+        verbose_name_plural = "Subsites"
+
 
 
 FLAG_TYPE_CHOICES = (

@@ -80,6 +80,8 @@ class Collection(models.Model):
 
     class Meta:
         ordering = ["name"]
+        verbose_name = "Photo Collection"
+        verbose_name_plural = "Photo Collections"
 
     def __str__(self):
         return self.name
@@ -105,7 +107,7 @@ class Photo(models.Model):
     dt_imported = models.DateTimeField(null=True, auto_now_add=True)
 
     # collection something something? probably separate m2m
-    collections = models.ManyToManyField(Collection, blank=True)
+    collections = models.ManyToManyField(Collection, blank=True, verbose_name="Photo collections")
 
     # descriptions
     title = models.TextField(null=True, blank=True, verbose_name="Title (original)")
